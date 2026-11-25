@@ -9,6 +9,10 @@ export default function RealtimeEARPlot({
   totalBlinks = 0,
   bpm = 0,
   elapsedSeconds = 0,
+  currentCycleSeconds = 0,
+  currentCycleBlinks = 0,
+  currentMinuteNumber = 1,
+  isSessionPaused = false,
 }) {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
@@ -208,12 +212,12 @@ export default function RealtimeEARPlot({
         />
       </div>
 
-      {/* 3 Core Scientific Telemetry Gauges */}
-      <div className="plot-gauges">
+      {/* 4 Core Scientific Telemetry Gauges */}
+      <div className="plot-gauges plot-gauges-4">
         {/* Metric 1: Blink Counter & Frequency */}
         <div className={`gauge-box ${isBlinking ? 'blink-active' : ''}`}>
           <div className="gauge-header-row">
-            <span className="gauge-label">Kedipan</span>
+            <span className="gauge-label">Total Kedipan</span>
             <span className="gauge-tag-bpm">{bpm} BPM</span>
           </div>
           <div className="gauge-value-row">
@@ -224,12 +228,32 @@ export default function RealtimeEARPlot({
           </div>
         </div>
 
-        {/* Metric 2: Live EAR & Status */}
+        {/* Metric 2: 1-Minute Cycle Progress */}
+        <div className={`gauge-box ${currentCycleBlinks >= 15 ? 'cycle-ok' : ''}`}>
+          <div className="gauge-header-row">
+            <span className="gauge-label">Siklus Menit #{currentMinuteNumber}</span>
+            <span className="gauge-tag-bpm" style={{
+              background: currentCycleBlinks >= 15 ? 'rgba(16, 185, 129, 0.14)' : 'rgba(245, 158, 11, 0.14)',
+              color: currentCycleBlinks >= 15 ? '#34d399' : '#fbbf24',
+              borderColor: currentCycleBlinks >= 15 ? 'rgba(16, 185, 129, 0.35)' : 'rgba(245, 158, 11, 0.35)',
+            }}>
+              {currentCycleBlinks}/15 std
+            </span>
+          </div>
+          <div className="gauge-value-row">
+            <span className="gauge-num">
+              {String(currentCycleSeconds).padStart(2, '0')}s
+            </span>
+            <span className="gauge-unit-text">/ 60s</span>
+          </div>
+        </div>
+
+        {/* Metric 3: Live EAR & Status */}
         <div className={`gauge-box ${isBlinking ? 'blink-active' : ''}`}>
           <div className="gauge-header-row">
             <span className="gauge-label">Rasio EAR</span>
-            <span className={`gauge-status-pill ${isBlinking ? 'blink' : 'open'}`}>
-              {isBlinking ? 'BLINK' : 'OPEN'}
+            <span className={`gauge-status-pill ${isSessionPaused ? 'paused' : isBlinking ? 'blink' : 'open'}`}>
+              {isSessionPaused ? 'PAUSED' : isBlinking ? 'BLINK' : 'OPEN'}
             </span>
           </div>
           <div className="gauge-value-row">
@@ -240,7 +264,7 @@ export default function RealtimeEARPlot({
           </div>
         </div>
 
-        {/* Metric 3: Session Duration */}
+        {/* Metric 4: Total Session Duration */}
         <div className="gauge-box">
           <div className="gauge-header-row">
             <span className="gauge-label">Durasi Sesi</span>
@@ -250,7 +274,7 @@ export default function RealtimeEARPlot({
             <span className="gauge-num">
               {timeFormatted}
             </span>
-            <span className="gauge-unit-text">waktu</span>
+            <span className="gauge-unit-text">aktif</span>
           </div>
         </div>
       </div>

@@ -32,6 +32,8 @@ export default function VideoCanvasFeed({
   onToggleLandmarks,
   propShowHaarRoi,
   onToggleHaarRoi,
+  propIsPaused = false,
+  onTogglePause,
   onRegisterTogglePip,
   onRegisterFileUpload,
 }) {
@@ -443,8 +445,8 @@ export default function VideoCanvasFeed({
           }
         }
 
-        // Send frame to FaceMesh detector if ready and not busy
-        if (faceMesh && isReady && !isProcessingRef.current && !video.paused) {
+        // Send frame to FaceMesh detector if ready, not paused, and not busy
+        if (faceMesh && isReady && !isProcessingRef.current && !video.paused && !propIsPaused) {
           try {
             isProcessingRef.current = true;
             await faceMesh.send({ image: video });
@@ -485,7 +487,7 @@ export default function VideoCanvasFeed({
       worker.onmessage = async () => {
         if (!document.hidden || !isMounted) return;
         const video = videoRef.current;
-        if (!video || video.paused || !faceMesh || !isReady || isProcessingRef.current) return;
+        if (!video || video.paused || propIsPaused || !faceMesh || !isReady || isProcessingRef.current) return;
 
         try {
           isProcessingRef.current = true;
@@ -523,9 +525,25 @@ export default function VideoCanvasFeed({
         bgWorkerRef.current = null;
       }
     };
-  }, [faceMesh, isReady, tracker, threshold, showLandmarks, showHaarRoi, mirrorCamera, inputMode, onFrameProcessed, onBlinkTrigger]);
+  }, [faceMesh, isReady, tracker, threshold, showLandmarks, showHaarRoi, mirrorCamera, inputMode, propIsPaused, onFrameProcessed, onBlinkTrigger]);
+
+  // Sync video playback state with propIsPaused when using sample/upload video
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || inputMode === 'webcam') return;
+    if (propIsPaused && !video.paused) {
+      video.pause();
+      setIsPlaying(false);
+    } else if (!propIsPaused && video.paused && video.src) {
+      video.play().then(() => setIsPlaying(true)).catch(() => {});
+    }
+  }, [propIsPaused, inputMode]);
 
   const togglePlay = () => {
+    if (onTogglePause) {
+      onTogglePause();
+      return;
+    }
     if (!videoRef.current) return;
     if (isPlaying) {
       videoRef.current.pause();
@@ -656,20 +674,35 @@ export default function VideoCanvasFeed({
           </div>
         )}
 
+        {/* Floating Paused Overlay Badge */}
+        {propIsPaused && (
+          <div className="video-paused-overlay">
+            <Pause size={18} />
+            <div>
+              <strong>Sesi Dijeda (Paused)</strong>
+              <span>Timer 1 menit &amp; peringatan dihentikan sementara</span>
+            </div>
+            {onTogglePause && (
+              <button type="button" onClick={onTogglePause} className="btn-primary" style={{ padding: '5px 12px' }}>
+                <Play size={13} />
+                <span>Lanjutkan</span>
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Floating Studio Bottom Toolbar (Inside video-stage so camera goes all the way to bottom!) */}
         <div className="studio-hud-bottom">
           <div className="btn-group">
+            <button onClick={togglePlay} className="btn-primary" style={{ padding: '4px 10px' }}>
+              {propIsPaused || (inputMode !== 'webcam' && !isPlaying) ? <Play size={13} /> : <Pause size={13} />}
+              <span>{propIsPaused || (inputMode !== 'webcam' && !isPlaying) ? 'Lanjutkan' : 'Pause'}</span>
+            </button>
             {inputMode !== 'webcam' && (
-              <>
-                <button onClick={togglePlay} className="btn-primary" style={{ padding: '4px 10px' }}>
-                  {isPlaying ? <Pause size={13} /> : <Play size={13} />}
-                  <span>{isPlaying ? 'Pause' : 'Play'}</span>
-                </button>
-                <button onClick={restartVideo} className="btn-secondary" style={{ padding: '4px 8px' }} title="Restart Video">
-                  <RotateCcw size={12} />
-                  <span>Restart</span>
-                </button>
-              </>
+              <button onClick={restartVideo} className="btn-secondary" style={{ padding: '4px 8px' }} title="Restart Video">
+                <RotateCcw size={12} />
+                <span>Restart</span>
+              </button>
             )}
 
             <button

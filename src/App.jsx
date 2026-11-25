@@ -3,12 +3,32 @@ import Navbar from './components/Navbar';
 import VideoCanvasFeed from './components/VideoCanvasFeed';
 import RealtimeEARPlot from './components/RealtimeEARPlot';
 import LandingPage from './components/LandingPage';
+import ResultsPage from './components/ResultsPage';
 import UsernameModal from './components/UsernameModal';
 import WelcomeOpening from './components/WelcomeOpening';
 import MobileBottomNav from './components/MobileBottomNav';
 import { BlinkTracker } from './lib/earMath';
 import { audioFeedback } from './lib/audioFeedback';
-import { ArrowLeft, ChevronRight, User } from 'lucide-react';
+import { BLINK_STANDARD, evaluateMinuteBlinkRate } from './lib/clinicalAnalysis';
+import {
+  ArrowLeft,
+  ArrowRight,
+  ChevronRight,
+  User,
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  Activity,
+  Pause,
+  Play,
+  FileBarChart2,
+} from 'lucide-react';
+
+function formatClockRange(minuteNumber) {
+  const startMin = minuteNumber - 1;
+  const endMin = minuteNumber;
+  return `${String(startMin).padStart(2, '0')}:00 – ${String(endMin).padStart(2, '0')}:00`;
+}
 
 export default function App() {
   // Detector & Tracker States
@@ -16,7 +36,7 @@ export default function App() {
   const [isReady, setIsReady] = useState(false);
 
   // Default threshold: 0.220 (Optimal for glasses & Asian eye anatomy)
-  const [threshold, setThreshold] = useState(0.220);
+  const [threshold, setThreshold] = useState(0.22);
   const consecFrames = 2;
 
   // Calibration State
@@ -38,9 +58,9 @@ export default function App() {
 
   // Real-time Telemetry
   const [fps, setFps] = useState(0);
-  const [currentEar, setCurrentEar] = useState(0.280);
-  const [leftEar, setLeftEar] = useState(0.280);
-  const [rightEar, setRightEar] = useState(0.280);
+  const [currentEar, setCurrentEar] = useState(0.28);
+  const [leftEar, setLeftEar] = useState(0.28);
+  const [rightEar, setRightEar] = useState(0.28);
   const [isBlinking, setIsBlinking] = useState(false);
   const [earHistory, setEarHistory] = useState([]);
   const [stats, setStats] = useState({
@@ -48,9 +68,23 @@ export default function App() {
     bpm: 0,
     elapsedSeconds: 0,
     avgEar: 0.28,
+    eventsCount: 0,
   });
 
-  // Navigation View State ('landing' | 'studio' | 'simple')
+  // Session Pause & 1-Minute Evaluation State
+  const [isSessionPaused, setIsSessionPaused] = useState(false);
+  const [minuteLogs, setMinuteLogs] = useState([]);
+  const [minuteAlert, setMinuteAlert] = useState(null);
+  const [currentCycleSeconds, setCurrentCycleSeconds] = useState(0);
+  const [currentCycleBlinks, setCurrentCycleBlinks] = useState(0);
+
+  // Refs for accurate 1-minute bucket tracking
+  const minuteStartBlinkCountRef = useRef(0);
+  const minuteEarSamplesRef = useRef([]);
+  const minuteLogsRef = useRef([]);
+  const lastTickRef = useRef(Date.now());
+
+  // Navigation View State ('landing' | 'studio' | 'simple' | 'results')
   const [currentView, setCurrentView] = useState('landing');
   const [selectedVideo, setSelectedVideo] = useState('/videos/blinking_1.mp4');
   const [initialMode, setInitialMode] = useState('sample');
@@ -64,20 +98,62 @@ export default function App() {
   const togglePipRef = useRef(null);
   const fileUploadRef = useRef(null);
 
+  // FPS calculation refs
+  const frameCountRef = useRef(0);
+  const lastTimeRef = useRef(performance.now());
+
+  // Instantiate Tracker
+  const tracker = useMemo(
+    () =>
+      new BlinkTracker({
+        earThreshold: threshold,
+        consecFrames: consecFrames,
+      }),
+    []
+  );
+
+  // Sync threshold with tracker
+  useEffect(() => {
+    tracker.setThreshold(threshold);
+  }, [threshold, tracker]);
+
+  // Keep minuteLogsRef synced
+  useEffect(() => {
+    minuteLogsRef.current = minuteLogs;
+  }, [minuteLogs]);
+
+  // Reset helper (clears tracker + 1-minute logs + alerts)
+  const resetSessionData = () => {
+    tracker.reset();
+    setEarHistory([]);
+    setStats(tracker.getStatistics());
+    setMinuteLogs([]);
+    minuteLogsRef.current = [];
+    minuteStartBlinkCountRef.current = 0;
+    minuteEarSamplesRef.current = [];
+    setMinuteAlert(null);
+    setCurrentCycleSeconds(0);
+    setCurrentCycleBlinks(0);
+    lastTickRef.current = Date.now();
+  };
+
   const handleLaunchStudio = (videoPath, mode = 'sample') => {
     if (videoPath) setSelectedVideo(videoPath);
     if (mode) {
       setInitialMode(mode);
       setInputMode(mode);
     }
+    setIsSessionPaused(false);
+    lastTickRef.current = Date.now();
     setCurrentView('studio');
   };
 
   const handleSelectSampleVideo = (videoPath) => {
-    tracker.reset();
-    setEarHistory([]);
+    resetSessionData();
     if (videoPath) setSelectedVideo(videoPath);
     setInitialMode('sample');
+    setIsSessionPaused(false);
+    lastTickRef.current = Date.now();
     setCurrentView('simple');
   };
 
@@ -93,7 +169,7 @@ export default function App() {
     setIsUsernameModalOpen(false);
 
     if (isEditingUsername) {
-      setCalibrationToast(`Operator profile updated to: ${newUsername}`);
+      setCalibrationToast(`Profil pasien / operator diperbarui: ${newUsername}`);
       setTimeout(() => setCalibrationToast(null), 3000);
       return;
     }
@@ -105,29 +181,24 @@ export default function App() {
   // Handle Welcome Opening Completion
   const handleWelcomeFinish = () => {
     setIsWelcomeOpeningOpen(false);
+    resetSessionData();
     handleLaunchStudio('/videos/blinking_1.mp4', 'webcam');
   };
 
-  // Edit Username from Navbar
+  // Edit Username from Navbar / Results
   const handleOpenEditUsername = () => {
     setIsEditingUsername(true);
     setIsUsernameModalOpen(true);
   };
 
-  // FPS calculation refs
-  const frameCountRef = useRef(0);
-  const lastTimeRef = useRef(performance.now());
-
-  // Instantiate Tracker
-  const tracker = useMemo(() => new BlinkTracker({
-    earThreshold: threshold,
-    consecFrames: consecFrames,
-  }), []);
-
-  // Sync threshold with tracker
-  useEffect(() => {
-    tracker.setThreshold(threshold);
-  }, [threshold, tracker]);
+  // Toggle Pause / Resume cleanly
+  const handleTogglePause = () => {
+    setIsSessionPaused((prev) => {
+      const next = !prev;
+      lastTickRef.current = Date.now();
+      return next;
+    });
+  };
 
   // Calibration Procedure (3-Second Sampling)
   const startCalibration = () => {
@@ -146,10 +217,14 @@ export default function App() {
         setIsCalibrating(false);
         if (res.success) {
           setThreshold(res.newThreshold);
-          setCalibrationToast(`Calibration Complete! Open Eye Baseline: ${res.baseline} → Auto EAR Threshold: ${res.newThreshold}`);
+          setCalibrationToast(
+            `Kalibrasi Selesai! Baseline Mata Terbuka: ${res.baseline} → Auto EAR Threshold: ${res.newThreshold}`
+          );
           setTimeout(() => setCalibrationToast(null), 5000);
         } else {
-          setCalibrationToast('Face was not detected during calibration. Please look directly at the camera.');
+          setCalibrationToast(
+            'Wajah tidak terdeteksi saat kalibrasi. Hadapkan wajah langsung ke kamera.'
+          );
           setTimeout(() => setCalibrationToast(null), 4000);
         }
       }
@@ -159,9 +234,11 @@ export default function App() {
   // Adjust threshold from Navbar micro-tuner or toggle
   const handleAdjustThreshold = (delta, isToggle = false) => {
     if (isToggle) {
-      setThreshold(prev => (prev <= 0.24 ? 0.280 : 0.210));
+      setThreshold((prev) => (prev <= 0.24 ? 0.28 : 0.21));
     } else {
-      setThreshold(prev => Math.max(0.14, Math.min(0.40, Number((prev + delta).toFixed(3)))));
+      setThreshold((prev) =>
+        Math.max(0.14, Math.min(0.4, Number((prev + delta).toFixed(3))))
+      );
     }
   };
 
@@ -196,6 +273,97 @@ export default function App() {
     initFaceMesh();
   }, []);
 
+  // 1-Minute Active Session Timer & Automatic Insufficient-Blink Alert Engine
+  useEffect(() => {
+    const isTrackingView = currentView === 'studio' || currentView === 'simple';
+    if (!isTrackingView || isSessionPaused || isCalibrating) {
+      lastTickRef.current = Date.now();
+      return;
+    }
+
+    lastTickRef.current = Date.now();
+    const timer = setInterval(() => {
+      const now = Date.now();
+      const delta = Math.min(1000, Math.max(0, now - lastTickRef.current));
+      lastTickRef.current = now;
+
+      tracker.addActiveTime(delta);
+      const nextStats = tracker.getStatistics();
+      setStats(nextStats);
+
+      const activeSec = nextStats.elapsedSeconds;
+      const cycleSec = activeSec % BLINK_STANDARD.INTERVAL_SECONDS;
+      const completedMinutes = Math.floor(activeSec / BLINK_STANDARD.INTERVAL_SECONDS);
+
+      setCurrentCycleSeconds(cycleSec);
+      setCurrentCycleBlinks(Math.max(0, tracker.blinkCounter - minuteStartBlinkCountRef.current));
+
+      // Check if a new 1-minute cycle just completed while session is NOT paused
+      if (completedMinutes > minuteLogsRef.current.length) {
+        const minuteNum = minuteLogsRef.current.length + 1;
+        const blinksInMinute = Math.max(0, tracker.blinkCounter - minuteStartBlinkCountRef.current);
+
+        const samples = minuteEarSamplesRef.current;
+        const avgEarMin =
+          samples.length > 0
+            ? Number((samples.reduce((a, b) => a + b, 0) / samples.length).toFixed(3))
+            : nextStats.avgEar;
+        const minEarMin =
+          samples.length > 0 ? Number(Math.min(...samples).toFixed(3)) : nextStats.avgEar;
+
+        // Average blink duration for events within the completed minute window
+        const minWindowStartMs = (minuteNum - 1) * 60000;
+        const minWindowEndMs = minuteNum * 60000;
+        const eventsInMin = tracker.blinkEvents.filter(
+          (ev) => ev.timestamp >= minWindowStartMs && ev.timestamp <= minWindowEndMs
+        );
+        const avgDurationMs =
+          eventsInMin.length > 0
+            ? Math.round(
+                eventsInMin.reduce((s, e) => s + (e.durationMs || 160), 0) / eventsInMin.length
+              )
+            : 0;
+
+        const evaluation = evaluateMinuteBlinkRate(
+          blinksInMinute,
+          avgEarMin,
+          minEarMin,
+          avgDurationMs
+        );
+
+        const logEntry = {
+          minuteNumber: minuteNum,
+          windowRange: formatClockRange(minuteNum),
+          blinksInMinute,
+          recordedAt: new Date().toLocaleTimeString('id-ID', { hour12: false }),
+          ...evaluation,
+        };
+
+        const updatedLogs = [...minuteLogsRef.current, logEntry];
+        minuteLogsRef.current = updatedLogs;
+        setMinuteLogs(updatedLogs);
+
+        // Reset counters for next 1-minute window
+        minuteStartBlinkCountRef.current = tracker.blinkCounter;
+        minuteEarSamplesRef.current = [];
+        setCurrentCycleBlinks(0);
+
+        // Trigger alert if unpaused and blink count < clinical standard (15/min)
+        if (evaluation.alertTriggered) {
+          audioFeedback.playAlertTone();
+          setMinuteAlert({
+            minuteNumber: minuteNum,
+            blinksInMinute,
+            severity: evaluation.severity,
+            message: `Peringatan Menit ke-${minuteNum}: Jumlah kedipan hanya ${blinksInMinute} kali (Standar umum: ${BLINK_STANDARD.MIN_NORMAL}–${BLINK_STANDARD.MAX_NORMAL} kedipan/menit). Istirahatkan mata & berkedip secara sadar!`,
+          });
+        }
+      }
+    }, 250);
+
+    return () => clearInterval(timer);
+  }, [currentView, isSessionPaused, isCalibrating, tracker]);
+
   // Frame processed handler
   const handleFrameProcessed = (data) => {
     setCurrentEar(data.ear);
@@ -203,7 +371,11 @@ export default function App() {
     setRightEar(data.rightEar);
     setIsBlinking(data.isBlinking);
     setEarHistory([...tracker.earHistory]);
-    setStats(tracker.getStatistics());
+    minuteEarSamplesRef.current.push(data.ear);
+
+    const updatedStats = tracker.getStatistics();
+    setStats(updatedStats);
+    setCurrentCycleBlinks(Math.max(0, tracker.blinkCounter - minuteStartBlinkCountRef.current));
 
     // FPS calculation
     frameCountRef.current += 1;
@@ -222,9 +394,7 @@ export default function App() {
 
   // Reset handler
   const handleReset = () => {
-    tracker.reset();
-    setEarHistory([]);
-    setStats(tracker.getStatistics());
+    resetSessionData();
   };
 
   // Export CSV handler
@@ -236,7 +406,7 @@ export default function App() {
   useEffect(() => {
     const handleVisibility = () => {
       if (!document.hidden) {
-        document.title = 'Eye Blink Detection System - Jason Istioso';
+        document.title = 'OcularVision • Eye Blink Detection & Clinical EAR Monitor';
       }
     };
     document.addEventListener('visibilitychange', handleVisibility);
@@ -245,14 +415,22 @@ export default function App() {
 
   useEffect(() => {
     if (document.hidden && currentView === 'studio') {
-      document.title = `(${stats.totalBlinks} Kedipan) EAR: ${currentEar.toFixed(3)} • Eye Blink Detection`;
+      document.title = `(${stats.totalBlinks} Kedipan • ${stats.bpm} BPM) EAR: ${currentEar.toFixed(3)}`;
     }
-  }, [stats.totalBlinks, currentEar, currentView]);
+  }, [stats.totalBlinks, stats.bpm, currentEar, currentView]);
+
+  const currentMinuteNumber = minuteLogs.length + 1;
+  const liveCyclePct = Math.min(100, Math.round((currentCycleSeconds / 60) * 100));
+  const targetRatioPct = Math.min(100, Math.round((currentCycleBlinks / BLINK_STANDARD.MIN_NORMAL) * 100));
 
   return (
-    <div className={`app-container ${currentView === 'landing' ? 'landing-mode' : ''}`}>
-      {/* Navigation Header only in Studio Mode ('hilangkan navbar saat diawal') */}
-      {currentView === 'studio' && (
+    <div
+      className={`app-container ${
+        currentView === 'landing' || currentView === 'results' ? 'landing-mode' : ''
+      }`}
+    >
+      {/* Navigation Header in Studio and Results Views */}
+      {(currentView === 'studio' || currentView === 'results') && (
         <Navbar
           fps={fps}
           isReady={isReady}
@@ -268,10 +446,14 @@ export default function App() {
           onViewChange={setCurrentView}
           username={username}
           onEditUsername={handleOpenEditUsername}
+          isSessionPaused={isSessionPaused}
+          onTogglePause={handleTogglePause}
+          completedMinutesCount={minuteLogs.length}
+          hasMinuteAlert={Boolean(minuteAlert)}
         />
       )}
 
-      {/* Main Content: Landing Page vs Simple Telemetry View vs Full Studio */}
+      {/* Main Content Router */}
       {currentView === 'landing' ? (
         <LandingPage
           onLaunchStudio={handleLaunchStudio}
@@ -279,9 +461,23 @@ export default function App() {
           onStartLiveCamera={handleStartLiveCamera}
           username={username}
         />
+      ) : currentView === 'results' ? (
+        <ResultsPage
+          username={username}
+          onEditUsername={handleOpenEditUsername}
+          stats={stats}
+          minuteLogs={minuteLogs}
+          blinkEvents={tracker.blinkEvents}
+          currentCycleSeconds={currentCycleSeconds}
+          currentCycleBlinks={currentCycleBlinks}
+          threshold={threshold}
+          baselineOpenEar={tracker.baselineOpenEar}
+          onBackToStudio={() => setCurrentView('studio')}
+          onReset={handleReset}
+          onExportCSV={handleExportCSV}
+        />
       ) : currentView === 'simple' ? (
         <div className="simple-telemetry-container">
-          {/* Streamlined Minimalist Header (Matching Image 2 Concept) */}
           <header className="simple-telemetry-topbar">
             <button
               onClick={() => setCurrentView('landing')}
@@ -296,7 +492,9 @@ export default function App() {
               <span className="live-dot ready" />
               <span className="simple-meta-title">Real-Time Ocular Telemetry</span>
               <span className="simple-meta-divider">•</span>
-              <span className="simple-meta-sub">Haar Cascade Eye ROI & MediaPipe EAR Tracking</span>
+              <span className="simple-meta-sub">
+                Menit #{currentMinuteNumber} ({currentCycleSeconds}s/60s) • {currentCycleBlinks}/15 std
+              </span>
               {username && (
                 <>
                   <span className="simple-meta-divider">•</span>
@@ -307,18 +505,44 @@ export default function App() {
                 </>
               )}
             </div>
-            <button
-              onClick={() => setCurrentView('studio')}
-              className="simple-studio-jump-btn"
-              title="Open Full Calibration & Studio Controls"
-            >
-              <span>Full Studio</span>
-              <ChevronRight size={14} />
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                onClick={() => setCurrentView('results')}
+                className="simple-studio-jump-btn"
+                title="Lihat Hasil Analisis"
+              >
+                <FileBarChart2 size={14} />
+                <span>Hasil</span>
+              </button>
+              <button
+                onClick={() => setCurrentView('studio')}
+                className="simple-studio-jump-btn"
+                title="Open Full Calibration & Studio Controls"
+              >
+                <span>Full Studio</span>
+                <ChevronRight size={14} />
+              </button>
+            </div>
           </header>
 
-          {/* Focused Dual Display (Matching Image 2 Exactly) */}
           <main className="main-content simple-telemetry-main">
+            {minuteAlert && (
+              <div className={`minute-alert-banner ${minuteAlert.severity}`}>
+                <div className="minute-alert-left">
+                  <AlertTriangle size={18} />
+                  <span>{minuteAlert.message}</span>
+                </div>
+                <div className="minute-alert-actions">
+                  <button type="button" onClick={() => setCurrentView('results')} className="minute-alert-cta">
+                    Lihat Hasil
+                  </button>
+                  <button type="button" onClick={() => setMinuteAlert(null)} className="minute-alert-close">
+                    ✕
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="dashboard-grid simple-telemetry-grid">
               <VideoCanvasFeed
                 key={`${selectedVideo}-simple`}
@@ -333,6 +557,8 @@ export default function App() {
                 initialVideo={selectedVideo}
                 initialMode="sample"
                 isSimpleView={true}
+                propIsPaused={isSessionPaused}
+                onTogglePause={handleTogglePause}
               />
 
               <RealtimeEARPlot
@@ -343,6 +569,10 @@ export default function App() {
                 totalBlinks={stats.totalBlinks}
                 bpm={stats.bpm}
                 elapsedSeconds={stats.elapsedSeconds}
+                currentCycleSeconds={currentCycleSeconds}
+                currentCycleBlinks={currentCycleBlinks}
+                currentMinuteNumber={currentMinuteNumber}
+                isSessionPaused={isSessionPaused}
               />
             </div>
             <div className="mobile-scroll-spacer" />
@@ -352,27 +582,117 @@ export default function App() {
         <main className="main-content">
           {/* Calibration Toast Banner */}
           {calibrationToast && (
-            <div style={{
-              padding: '10px 16px',
-              background: 'rgba(16, 185, 129, 0.15)',
-              border: '1px solid rgba(16, 185, 129, 0.4)',
-              borderRadius: 'var(--radius-sm)',
-              color: '#34d399',
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}>
+            <div className="studio-toast-banner">
               <span>{calibrationToast}</span>
-              <button
-                onClick={() => setCalibrationToast(null)}
-                style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.8rem' }}
-              >
+              <button onClick={() => setCalibrationToast(null)} className="studio-toast-close">
                 ✕
               </button>
             </div>
           )}
+
+          {/* 1-Minute Insufficient Blink Alert Banner */}
+          {minuteAlert && (
+            <div className={`minute-alert-banner ${minuteAlert.severity}`}>
+              <div className="minute-alert-left">
+                <div className="minute-alert-icon-pulse">
+                  <AlertTriangle size={18} />
+                </div>
+                <div>
+                  <strong>Alert Standar Kedipan 1 Menit</strong>
+                  <p>{minuteAlert.message}</p>
+                </div>
+              </div>
+              <div className="minute-alert-actions">
+                <button
+                  type="button"
+                  onClick={() => setCurrentView('results')}
+                  className="minute-alert-cta"
+                >
+                  <span>Lihat Tabel Analisis</span>
+                  <ArrowRight size={13} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMinuteAlert(null)}
+                  className="minute-alert-close"
+                  title="Tutup peringatan"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Clean Live 1-Minute Clinical Monitor Bar */}
+          <div className="studio-minute-strip">
+            <div className="strip-item">
+              <div className="strip-icon cyan">
+                <Clock size={15} />
+              </div>
+              <div className="strip-text">
+                <div className="strip-top">
+                  <span>Evaluasi Menit #{currentMinuteNumber}</span>
+                  <strong className="mono">{String(currentCycleSeconds).padStart(2, '0')}s / 60s</strong>
+                </div>
+                <div className="strip-progress-track">
+                  <div className="strip-progress-fill cyan" style={{ width: `${liveCyclePct}%` }} />
+                </div>
+              </div>
+            </div>
+
+            <div className="strip-divider" />
+
+            <div className="strip-item">
+              <div className={`strip-icon ${currentCycleBlinks >= BLINK_STANDARD.MIN_NORMAL ? 'emerald' : 'amber'}`}>
+                {currentCycleBlinks >= BLINK_STANDARD.MIN_NORMAL ? (
+                  <CheckCircle2 size={15} />
+                ) : (
+                  <Activity size={15} />
+                )}
+              </div>
+              <div className="strip-text">
+                <div className="strip-top">
+                  <span>Target Menit Ini (Standar: 15–20)</span>
+                  <strong className="mono">{currentCycleBlinks} / 15 kedipan</strong>
+                </div>
+                <div className="strip-progress-track">
+                  <div
+                    className={`strip-progress-fill ${currentCycleBlinks >= BLINK_STANDARD.MIN_NORMAL ? 'emerald' : 'amber'}`}
+                    style={{ width: `${targetRatioPct}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="strip-divider" />
+
+            <div className="strip-status-group">
+              <div className={`strip-state-pill ${isSessionPaused ? 'paused' : 'active'}`}>
+                <span className={`live-dot ${isSessionPaused ? '' : 'ready'}`} />
+                <span>{isSessionPaused ? 'DIJEDA (PAUSED)' : `AKTIF • ${stats.bpm} BPM`}</span>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleTogglePause}
+                className="strip-mini-btn"
+                title={isSessionPaused ? 'Lanjutkan Sesi' : 'Jeda Sesi'}
+              >
+                {isSessionPaused ? <Play size={13} /> : <Pause size={13} />}
+                <span>{isSessionPaused ? 'Lanjut' : 'Pause'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setCurrentView('results')}
+                className="strip-results-btn"
+              >
+                <FileBarChart2 size={13} />
+                <span>Hasil ({minuteLogs.length} mnt)</span>
+                <ArrowRight size={13} />
+              </button>
+            </div>
+          </div>
 
           {/* Dual Screen Display: Video on Left, Oscilloscope on Right */}
           <div className="dashboard-grid">
@@ -399,8 +719,14 @@ export default function App() {
               onToggleLandmarks={() => setShowLandmarks((p) => !p)}
               propShowHaarRoi={showHaarRoi}
               onToggleHaarRoi={() => setShowHaarRoi((p) => !p)}
-              onRegisterTogglePip={(fn) => { togglePipRef.current = fn; }}
-              onRegisterFileUpload={(fn) => { fileUploadRef.current = fn; }}
+              propIsPaused={isSessionPaused}
+              onTogglePause={handleTogglePause}
+              onRegisterTogglePip={(fn) => {
+                togglePipRef.current = fn;
+              }}
+              onRegisterFileUpload={(fn) => {
+                fileUploadRef.current = fn;
+              }}
             />
 
             <RealtimeEARPlot
@@ -411,6 +737,10 @@ export default function App() {
               totalBlinks={stats.totalBlinks}
               bpm={stats.bpm}
               elapsedSeconds={stats.elapsedSeconds}
+              currentCycleSeconds={currentCycleSeconds}
+              currentCycleBlinks={currentCycleBlinks}
+              currentMinuteNumber={currentMinuteNumber}
+              isSessionPaused={isSessionPaused}
             />
           </div>
           <div className="mobile-scroll-spacer" />
@@ -421,6 +751,8 @@ export default function App() {
       {currentView === 'studio' && (
         <MobileBottomNav
           onViewChange={setCurrentView}
+          isSessionPaused={isSessionPaused}
+          onTogglePause={handleTogglePause}
           isCalibrating={isCalibrating}
           calibrateCountdown={calibrateCountdown}
           onStartCalibration={startCalibration}
@@ -444,8 +776,6 @@ export default function App() {
         />
       )}
 
-
-
       {/* Username Registration & Editing Modal */}
       <UsernameModal
         isOpen={isUsernameModalOpen}
@@ -457,10 +787,7 @@ export default function App() {
 
       {/* Welcome Opening Transition Screen */}
       {isWelcomeOpeningOpen && (
-        <WelcomeOpening
-          username={username}
-          onFinish={handleWelcomeFinish}
-        />
+        <WelcomeOpening username={username} onFinish={handleWelcomeFinish} />
       )}
     </div>
   );

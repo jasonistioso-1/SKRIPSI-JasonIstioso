@@ -518,9 +518,18 @@ function Front({
   title?: string;
   subtitle?: string;
   location?: string;
-  websiteUrl?: string;
+  websiteUrl?: string | null;
   websiteLabel?: string;
 }) {
+  const titleFontMm =
+    title.length > 16
+      ? 6.6
+      : title.length > 12
+        ? 8.0
+        : title.length > 8
+          ? 9.8
+          : 12.5;
+
   return (
     <span className="bc-front">
       {/* The sky: website-blue gradient + painted clouds */}
@@ -541,8 +550,17 @@ function Front({
             className="bc-front-hero"
             style={{ gap: mm(3), transform: `translateY(${mm(-3.5)})` }}
           >
-            <span className="bc-front-hero-titles">
-              <span className="bc-front-hero-main" style={{ fontSize: mm(12.5) }}>
+            <span className="bc-front-hero-titles" style={{ minWidth: 0 }}>
+              <span
+                className="bc-front-hero-main"
+                style={{
+                  fontSize: mm(titleFontMm),
+                  maxWidth: "100%",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
                 {title}
               </span>
               <span
@@ -554,7 +572,7 @@ function Front({
             </span>
             <img
               src={FACE_IMG}
-              alt="Jason Istioso Avatar"
+              alt={`${title} Avatar`}
               draggable={false}
               className="bc-front-avatar"
               style={{ width: mm(17) }}
@@ -585,15 +603,21 @@ function Front({
           />
           <span style={{ marginLeft: "0.25em" }}>{location}</span>
         </span>
-        <a
-          href={websiteUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="bc-front-strip-link"
-          style={{ fontSize: mm(2.3) }}
-        >
-          {websiteLabel} <span aria-hidden style={{ marginLeft: 3 }}>↗</span>
-        </a>
+        {websiteUrl ? (
+          <a
+            href={websiteUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bc-front-strip-link"
+            style={{ fontSize: mm(2.3) }}
+          >
+            {websiteLabel} <span aria-hidden style={{ marginLeft: 3 }}>↗</span>
+          </a>
+        ) : (
+          <span className="bc-front-strip-link" style={{ fontSize: mm(2.3) }}>
+            {websiteLabel}
+          </span>
+        )}
       </span>
     </span>
   );
@@ -607,14 +631,18 @@ function Back({
   websiteUrl = "https://github.com/jasonistioso",
   websiteLabel = "github.com/jasonistioso",
   email = "istiosojason@gmail.com",
+  qrCaption = "Scan to see my work",
+  qrCaptionJp = "スキャンして作品を見る",
 }: {
   name?: string;
   nameJp?: string;
   tagline?: string;
   taglineJp?: string;
-  websiteUrl?: string;
+  websiteUrl?: string | null;
   websiteLabel?: string;
   email?: string;
+  qrCaption?: string;
+  qrCaptionJp?: string;
 }) {
   const icon = { width: mm(2.6), height: mm(2.6), color: BLUE, flexShrink: 0 };
   return (
@@ -653,16 +681,23 @@ function Back({
             className="bc-back-contacts"
             style={{ marginTop: mm(3.2), gap: mm(1.2), fontSize: mm(2.35) }}
           >
-            <a
-              href={websiteUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bc-back-contact-row"
-              style={{ gap: mm(1.4) }}
-            >
-              <Globe aria-hidden strokeWidth={1.8} style={icon} />
-              <span>{websiteLabel}</span>
-            </a>
+            {websiteUrl ? (
+              <a
+                href={websiteUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bc-back-contact-row"
+                style={{ gap: mm(1.4) }}
+              >
+                <Globe aria-hidden strokeWidth={1.8} style={icon} />
+                <span>{websiteLabel}</span>
+              </a>
+            ) : (
+              <span className="bc-back-contact-row" style={{ gap: mm(1.4) }}>
+                <Globe aria-hidden strokeWidth={1.8} style={icon} />
+                <span>{websiteLabel}</span>
+              </span>
+            )}
             <a
               href={`mailto:${email}`}
               className="bc-back-contact-row"
@@ -682,7 +717,7 @@ function Back({
           <span className="bc-back-qr-container">
             <img
               src={QR_IMG}
-              alt={`QR code to ${websiteUrl}`}
+              alt={`QR code to ${websiteUrl || "OcularVision"}`}
               draggable={false}
               style={{ display: "block", width: "100%", height: "auto" }}
             />
@@ -706,12 +741,12 @@ function Back({
             className="bc-back-qr-caption"
             style={{ marginTop: mm(1.2), fontSize: mm(1.9) }}
           >
-            Scan to see my work
+            {qrCaption}
             <span
               className="bc-jp"
               style={{ display: "block", marginTop: mm(0.3), fontSize: mm(1.6) }}
             >
-              スキャンして作品を見る
+              {qrCaptionJp}
             </span>
           </span>
         </span>
@@ -726,12 +761,38 @@ export function BusinessCard({
   idleGlow = HOLO_REST,
   defaultFlipped = false,
   className,
+  greeting,
+  title,
+  subtitle,
+  location,
+  websiteUrl,
+  websiteLabel,
+  name,
+  nameJp,
+  tagline,
+  taglineJp,
+  email,
+  qrCaption,
+  qrCaptionJp,
 }: {
   effect?: CardEffect;
   intensity?: number;
   idleGlow?: number;
   defaultFlipped?: boolean;
   className?: string;
+  greeting?: string;
+  title?: string;
+  subtitle?: string;
+  location?: string;
+  websiteUrl?: string | null;
+  websiteLabel?: string;
+  name?: string;
+  nameJp?: string;
+  tagline?: string;
+  taglineJp?: string;
+  email?: string;
+  qrCaption?: string;
+  qrCaptionJp?: string;
 }) {
   const reduceMotion = useReducedMotion();
   const [flipped, setFlipped] = useState(defaultFlipped);
@@ -775,6 +836,8 @@ export function BusinessCard({
     scale.set(1);
   };
 
+  const ownerLabel = name || title || "Jason Istioso";
+
   return (
     <>
       <style>{FONT_CSS}</style>
@@ -797,8 +860,8 @@ export function BusinessCard({
           type="button"
           aria-label={
             flipped
-              ? "Kartu Nama Holografik Jason Istioso: klik untuk kembali ke tampak depan."
-              : "Kartu Nama Holografik Jason Istioso: klik atau tap untuk melihat kontak dan QR code GitHub."
+              ? `Kartu Nama Holografik ${ownerLabel}: klik untuk kembali ke tampak depan.`
+              : `Kartu Nama Holografik ${ownerLabel}: klik atau tap untuk melihat detail.`
           }
           className="bc-btn"
           onClick={toggle}
@@ -828,10 +891,27 @@ export function BusinessCard({
             style={{ rotateY: flip }}
           >
             <Face effect={effect} opacity={frontOpacity}>
-              <Front />
+              <Front
+                greeting={greeting}
+                title={title}
+                subtitle={subtitle}
+                location={location}
+                websiteUrl={websiteUrl}
+                websiteLabel={websiteLabel}
+              />
             </Face>
             <Face back effect={effect} opacity={backOpacity}>
-              <Back />
+              <Back
+                name={name}
+                nameJp={nameJp}
+                tagline={tagline}
+                taglineJp={taglineJp}
+                websiteUrl={websiteUrl}
+                websiteLabel={websiteLabel}
+                email={email}
+                qrCaption={qrCaption}
+                qrCaptionJp={qrCaptionJp}
+              />
             </Face>
           </motion.span>
         </motion.button>

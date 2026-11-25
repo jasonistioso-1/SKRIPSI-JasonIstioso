@@ -18,11 +18,17 @@ import {
   Upload,
   PictureInPicture2,
   ChevronRight,
-  Check
+  Check,
+  FileBarChart2,
+  Pause,
+  Play
 } from 'lucide-react';
 
 export default function MobileBottomNav({
   onViewChange,
+  // Pause / Session
+  isSessionPaused = false,
+  onTogglePause,
   // Calibration
   isCalibrating,
   calibrateCountdown,
@@ -305,8 +311,59 @@ export default function MobileBottomNav({
               {/* TAB 5 CONTENT: PiP & DATA */}
               {activeSheet === 'data' && (
                 <div className="sheet-content-group">
-                  <span className="sheet-group-label">Background & Manajemen Data</span>
+                  <span className="sheet-group-label">Hasil Analisis &amp; Kontrol Sesi</span>
                   <div className="sheet-vertical-actions">
+                    {/* Item 0: Lihat Hasil Analisis (Next Page) */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        closeSheet();
+                        onViewChange?.('results');
+                      }}
+                      className="sheet-action-card hover-emerald"
+                    >
+                      <div className="sheet-card-left">
+                        <div className="sheet-icon-pill tint-cyan">
+                          <FileBarChart2 size={18} />
+                        </div>
+                        <div className="sheet-card-text">
+                          <span className="sheet-card-title">Lihat Hasil Analisis (Next Page)</span>
+                          <span className="sheet-card-desc">Buka kartu nama pasien, tabel per menit &amp; diagnosa AI</span>
+                        </div>
+                      </div>
+                      <div className="sheet-action-pill emerald">
+                        <span>Buka</span>
+                        <ChevronRight size={13} />
+                      </div>
+                    </button>
+
+                    {/* Pause / Resume Session */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onTogglePause?.();
+                        closeSheet();
+                      }}
+                      className={`sheet-action-card ${isSessionPaused ? 'active' : ''}`}
+                    >
+                      <div className="sheet-card-left">
+                        <div className="sheet-icon-pill tint-amber">
+                          {isSessionPaused ? <Play size={18} /> : <Pause size={18} />}
+                        </div>
+                        <div className="sheet-card-text">
+                          <span className="sheet-card-title">
+                            {isSessionPaused ? 'Lanjutkan Sesi Deteksi' : 'Jeda Sesi (Pause)'}
+                          </span>
+                          <span className="sheet-card-desc">
+                            {isSessionPaused ? 'Aktifkan kembali timer 1 menit & kamera' : 'Hentikan sementara timer 1 menit & alert'}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="sheet-action-pill amber">
+                        <span>{isSessionPaused ? 'Lanjut' : 'Pause'}</span>
+                      </div>
+                    </button>
+
                     {/* Item 1: PiP Background Toggle */}
                     <button
                       type="button"

@@ -62,6 +62,7 @@ export class BlinkTracker {
     this.frameCounter = 0;
     this.isBlinking = false;
     this.lastBlinkTime = 0;
+    this.blinkStartTime = 0;
     this.refractoryPeriodMs = 180; // Minimum 180ms cooldown to prevent multi-count stutter
 
     // Adaptive Baseline Calibration
@@ -76,6 +77,9 @@ export class BlinkTracker {
     this.maxHistory = 150;
     this.blinkEvents = [];
     this.sessionStartTime = Date.now();
+    this.activeElapsedMs = 0;
+    this.earSum = 0;
+    this.earCount = 0;
   }
 
   setThreshold(threshold) {
@@ -84,6 +88,12 @@ export class BlinkTracker {
 
   setConsecFrames(frames) {
     this.consecFrames = Number(frames);
+  }
+
+  addActiveTime(deltaMs) {
+    if (deltaMs > 0) {
+      this.activeElapsedMs += deltaMs;
+    }
   }
 
   startCalibration() {
@@ -114,10 +124,14 @@ export class BlinkTracker {
     this.frameCounter = 0;
     this.isBlinking = false;
     this.lastBlinkTime = 0;
+    this.blinkStartTime = 0;
     this.smoothedEar = null;
     this.earHistory = [];
     this.blinkEvents = [];
     this.sessionStartTime = Date.now();
+    this.activeElapsedMs = 0;
+    this.earSum = 0;
+    this.earCount = 0;
   }
 
   /**
@@ -140,6 +154,8 @@ export class BlinkTracker {
     }
 
     const ear = Number(this.smoothedEar.toFixed(3));
+    this.earSum += ear;
+    this.earCount += 1;
 
     // Handle Active Calibration
     if (this.isCalibrating) {
@@ -150,6 +166,9 @@ export class BlinkTracker {
     let blinkDetected = false;
 
     if (ear < this.earThreshold) {
+      if (this.frameCounter === 0) {
+        this.blinkStartTime = now;
+      }
       this.frameCounter += 1;
       this.isBlinking = true;
     } else {
@@ -162,15 +181,22 @@ export class BlinkTracker {
         this.blinkCounter += 1;
         blinkDetected = true;
         this.lastBlinkTime = now;
+        const durationMs = this.blinkStartTime
+          ? Math.max(60, Math.min(800, now - this.blinkStartTime))
+          : 160;
 
         this.blinkEvents.push({
+          id: this.blinkCounter,
           frame: frameIndex,
-          timestamp: now - this.sessionStartTime,
+          timestamp: Math.round(this.activeElapsedMs || (now - this.sessionStartTime)),
+          clockTime: new Date().toLocaleTimeString('id-ID', { hour12: false }),
           ear: ear,
+          durationMs,
           consecFramesReached: this.frameCounter,
         });
       }
       this.frameCounter = 0;
+      this.blinkStartTime = 0;
       this.isBlinking = false;
     }
 
@@ -201,15 +227,19 @@ export class BlinkTracker {
   }
 
   getStatistics() {
-    const elapsedSeconds = Math.max(1, (Date.now() - this.sessionStartTime) / 1000);
-    const bpm = Number(((this.blinkCounter / elapsedSeconds) * 60).toFixed(1));
-    const ears = this.earHistory.map(h => h.ear);
-    const avgEar = ears.length ? Number((ears.reduce((a, b) => a + b, 0) / ears.length).toFixed(3)) : 0.25;
+    const activeSeconds = Math.floor(this.activeElapsedMs / 1000);
+    const effectiveSeconds = Math.max(1, activeSeconds || 1);
+    const bpm = activeSeconds > 0
+      ? Number(((this.blinkCounter / effectiveSeconds) * 60).toFixed(1))
+      : 0;
+    const avgEar = this.earCount > 0
+      ? Number((this.earSum / this.earCount).toFixed(3))
+      : 0.28;
 
     return {
       totalBlinks: this.blinkCounter,
       bpm,
-      elapsedSeconds: Math.floor(elapsedSeconds),
+      elapsedSeconds: activeSeconds,
       avgEar,
       eventsCount: this.blinkEvents.length,
     };
