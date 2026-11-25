@@ -724,7 +724,11 @@ export default function App() {
 
       {/* Welcome Opening Transition Screen */}
       {isWelcomeOpeningOpen && (
-        <WelcomeOpening username={username} onFinish={handleWelcomeFinish} />
+        <WelcomeOpening
+          username={username}
+          isEngineReady={isReady}
+          onFinish={handleWelcomeFinish}
+        />
       )}
     </div>
   );
