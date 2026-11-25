@@ -8,6 +8,10 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
+  Activity,
+  Eye,
+  Timer,
+  ShieldAlert,
 } from 'lucide-react';
 import BusinessCard from './ui/holographic-business-card';
 import { BLINK_STANDARD, generateHospitalClinicalReport } from '../lib/clinicalAnalysis';
@@ -63,7 +67,7 @@ export default function ResultsPage({
 
   const statusShortLabel =
     report.severity === 'normal'
-      ? 'Normal (Sesuai Standar)'
+      ? 'Normal • Sesuai Standar'
       : report.severity === 'critical'
         ? 'Kurang Kedipan Berat'
         : report.severity === 'warning'
@@ -82,48 +86,76 @@ export default function ResultsPage({
     }, 500);
   };
 
+  // Position on 0..32 BPM spectrum bar
+  const maxGaugeBpm = 32;
+  const markerLeftPct = Math.max(2, Math.min(98, (report.validatedAvgBpm / maxGaugeBpm) * 100));
+  const normalZoneLeftPct = (BLINK_STANDARD.MIN_NORMAL / maxGaugeBpm) * 100;
+  const normalZoneWidthPct =
+    ((BLINK_STANDARD.MAX_NORMAL - BLINK_STANDARD.MIN_NORMAL) / maxGaugeBpm) * 100;
+
+  const maxBarBlinks = Math.max(26, ...minuteLogs.map((m) => m.blinksInMinute), currentCycleBlinks);
+  const recentBlinks = [...blinkEvents].slice(-8).reverse();
+
   return (
-    <div className="simple-results-page">
+    <div className="res-page">
       {/* ========================================================
-          SCREEN VIEW (Dark Mode Clean Layout)
+          SCREEN VIEW (Polished, Visual, Clean & Easy to Scan)
           ======================================================== */}
-      <div className="simple-results-container screen-only-results">
-        {/* Simple Clean Header */}
-        <div className="simple-results-header">
-          <div>
-            <h1 className="simple-results-title">Hasil Pemeriksaan Kedipan Mata</h1>
-            <p className="simple-results-sub">
-              Jason Istioso&apos;s Clinic • Eye Blink Detection System • {displayName} • Durasi{' '}
-              {formatDuration(activeSeconds)}
+      <div className="res-container screen-only-results">
+        {/* Top Header */}
+        <header className="res-header">
+          <div className="res-header-left">
+            <div className="res-eyebrow">
+              <span>Jason Istioso&apos;s Clinic</span>
+              <span className="res-dot-sep">•</span>
+              <span>Eye Blink Detection System</span>
+            </div>
+            <h1 className="res-title">Hasil Pemeriksaan Kedipan</h1>
+            <p className="res-subtitle">
+              Peserta <strong>{displayName}</strong> • Durasi aktif{' '}
+              <strong>{formatDuration(activeSeconds)}</strong> • Standar umum{' '}
+              <strong>
+                {BLINK_STANDARD.MIN_NORMAL}–{BLINK_STANDARD.MAX_NORMAL} kedipan/menit
+              </strong>
             </p>
           </div>
 
-          <div className="simple-results-actions">
-            <button type="button" onClick={onBackToStudio} className="hosp-btn-secondary">
-              <ArrowLeft size={14} />
-              <span>Kembali</span>
+          <div className="res-header-actions">
+            <button type="button" onClick={onBackToStudio} className="res-btn secondary">
+              <ArrowLeft size={15} />
+              <span>Kembali ke Studio</span>
             </button>
-            <button type="button" onClick={onExportCSV} className="hosp-btn-secondary">
-              <Download size={14} />
+            <button type="button" onClick={onExportCSV} className="res-btn secondary">
+              <Download size={15} />
               <span>Export CSV</span>
             </button>
-            <button type="button" onClick={handlePrintPdf} className="hosp-btn-primary">
-              <FileDown size={14} />
+            <button type="button" onClick={handlePrintPdf} className="res-btn primary">
+              <FileDown size={15} />
               <span>Simpan PDF</span>
             </button>
           </div>
-        </div>
+        </header>
 
-        {/* Row 1: Namecard (Same as Home, username synced) + Clean Summary */}
-        <div className="simple-results-top-grid">
-          <div className="simple-panel simple-namecard-box">
-            <div className="hosp-namecard-stage">
+        {/* Hero Row: Namecard Stage + Visual Assessment Card */}
+        <section className="res-hero-grid">
+          {/* Left: Holographic Namecard (Same as Home, personalized to username) */}
+          <div className="res-surface res-card-stage-panel">
+            <div className="res-card-ambient" />
+            <div className="res-stage-top">
+              <span className="res-label-cap">Kartu Identitas Peserta</span>
+              <button type="button" onClick={onEditUsername} className="res-edit-pill">
+                <Edit3 size={12} />
+                <span>{hasCustomName ? 'Ubah Nama' : 'Isi Nama'}</span>
+              </button>
+            </div>
+
+            <div className="res-namecard-wrap">
               <BusinessCard
                 effect="shards"
-                intensity={0.35}
+                intensity={0.38}
                 greeting={`Halo, ${displayName}`}
                 title={displayName}
-                subtitle="hasil analisis kedipan"
+                subtitle="hasil pemeriksaan"
                 location="JASON ISTIOSO'S CLINIC"
                 websiteUrl={null}
                 websiteLabel={`${report.validatedAvgBpm} BPM • ${totalBlinks} kedipan`}
@@ -137,93 +169,185 @@ export default function ResultsPage({
               />
             </div>
 
-            <button
-              type="button"
-              onClick={onEditUsername}
-              className="simple-edit-name-link"
-            >
-              <Edit3 size={12} />
-              <span>{hasCustomName ? `Ubah nama (${displayName})` : 'Isi username untuk kartu nama'}</span>
-            </button>
+            <p className="res-card-hint">
+              Arahkan kursor atau klik kartu untuk melihat detail sisi belakang.
+            </p>
           </div>
 
-          <div className="simple-panel simple-summary-box">
-            <div className="simple-summary-head">
-              <span className="simple-section-label">Jason Istioso&apos;s Clinic • Ringkasan</span>
-              <span className={`hosp-status-chip ${statusTone}`}>
+          {/* Right: Visual Clinical Assessment */}
+          <div className="res-surface res-summary-panel">
+            <div className="res-summary-top">
+              <div>
+                <span className="res-label-cap">Evaluasi Laju Kedipan</span>
+                <div className="res-hero-bpm-row">
+                  <span className={`res-hero-bpm ${statusTone}`}>{report.validatedAvgBpm}</span>
+                  <span className="res-hero-unit">kedipan / menit</span>
+                </div>
+              </div>
+
+              <span className={`res-status-badge ${statusTone}`}>
                 {statusTone === 'normal' ? (
-                  <CheckCircle2 size={12} />
+                  <CheckCircle2 size={14} />
                 ) : statusTone === 'neutral' ? (
-                  <Clock size={12} />
+                  <Clock size={14} />
+                ) : statusTone === 'critical' ? (
+                  <ShieldAlert size={14} />
                 ) : (
-                  <AlertTriangle size={12} />
+                  <AlertTriangle size={14} />
                 )}
                 <span>{statusShortLabel}</span>
               </span>
             </div>
 
-            <h2 className="simple-diagnosis-title">{report.diagnosisTitle}</h2>
-            <p className="simple-diagnosis-desc">{report.summaryText}</p>
+            {/* Visual Blink Rate Spectrum Bar */}
+            <div className="res-spectrum-box">
+              <div className="res-spectrum-bar">
+                <div
+                  className="res-spectrum-normal-zone"
+                  style={{
+                    left: `${normalZoneLeftPct}%`,
+                    width: `${normalZoneWidthPct}%`,
+                  }}
+                >
+                  <span className="res-zone-tag">Standar 15–20</span>
+                </div>
+                {(activeSeconds > 0 || totalBlinks > 0) && (
+                  <div
+                    className={`res-spectrum-marker ${statusTone}`}
+                    style={{ left: `${markerLeftPct}%` }}
+                    title={`Posisi Anda: ${report.validatedAvgBpm} kedipan/menit`}
+                  >
+                    <span className="res-marker-dot" />
+                  </div>
+                )}
+              </div>
+              <div className="res-spectrum-ticks">
+                <span>0</span>
+                <span>10 (Kurang)</span>
+                <span>15</span>
+                <span>20</span>
+                <span>25+ (Tinggi)</span>
+              </div>
+            </div>
 
-            {/* 4 Clean Numbers */}
-            <div className="simple-metrics-grid">
-              <div className="simple-metric-cell">
-                <span className="simple-metric-label">Rasio / Menit</span>
-                <strong className="simple-metric-value">{report.validatedAvgBpm}</strong>
-                <span className="simple-metric-hint">Standar 15–20/mnt</span>
+            {/* 3 Clean Highlight Metrics */}
+            <div className="res-kpi-grid">
+              <div className="res-kpi-card">
+                <div className="res-kpi-head">
+                  <Eye size={14} className="icon-cyan" />
+                  <span>Total Kedipan</span>
+                </div>
+                <strong className="res-kpi-val">{totalBlinks}</strong>
+                <span className="res-kpi-sub">Durasi aktif {formatDuration(activeSeconds)}</span>
               </div>
-              <div className="simple-metric-cell">
-                <span className="simple-metric-label">Total Kedipan</span>
-                <strong className="simple-metric-value">{totalBlinks}</strong>
-                <span className="simple-metric-hint">Durasi {formatDuration(activeSeconds)}</span>
+
+              <div className="res-kpi-card">
+                <div className="res-kpi-head">
+                  <Activity size={14} className="icon-emerald" />
+                  <span>Rata-rata EAR</span>
+                </div>
+                <strong className="res-kpi-val">{report.avgEar.toFixed(3)}</strong>
+                <span className="res-kpi-sub">Threshold {threshold.toFixed(3)}</span>
               </div>
-              <div className="simple-metric-cell">
-                <span className="simple-metric-label">Rata-rata EAR</span>
-                <strong className="simple-metric-value">{report.avgEar.toFixed(3)}</strong>
-                <span className="simple-metric-hint">Threshold {threshold.toFixed(3)}</span>
-              </div>
-              <div className="simple-metric-cell">
-                <span className="simple-metric-label">Alert (&lt; 15/mnt)</span>
+
+              <div className="res-kpi-card">
+                <div className="res-kpi-head">
+                  <Timer size={14} className={report.alertMinutesCount > 0 ? 'icon-rose' : 'icon-emerald'} />
+                  <span>Alert 1 Menit</span>
+                </div>
                 <strong
-                  className="simple-metric-value"
+                  className="res-kpi-val"
                   style={{ color: report.alertMinutesCount > 0 ? '#fb7185' : '#34d399' }}
                 >
                   {report.alertMinutesCount}x
                 </strong>
-                <span className="simple-metric-hint">{report.completedMinutes} menit selesai</span>
+                <span className="res-kpi-sub">{report.completedMinutes} siklus selesai</span>
               </div>
             </div>
 
-            {/* Concise Recommendations */}
-            <div className="simple-advice-box">
-              <span className="simple-advice-label">Saran</span>
-              <ul className="simple-advice-list">
+            {/* Verdict & Practical Advice */}
+            <div className={`res-verdict-box ${statusTone}`}>
+              <h2 className="res-verdict-title">{report.diagnosisTitle}</h2>
+              <p className="res-verdict-desc">{report.summaryText}</p>
+              <ul className="res-advice-list">
                 {report.recommendations.slice(0, 2).map((rec, i) => (
                   <li key={i}>{rec}</li>
                 ))}
               </ul>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Row 2: Minute-by-Minute Table */}
-        <div className="simple-panel">
-          <div className="simple-table-head">
-            <h3 className="simple-table-title">Tabel Analisis Tiap 1 Menit</h3>
-            <span className="simple-table-meta">
-              Standar umum: {BLINK_STANDARD.MIN_NORMAL}–{BLINK_STANDARD.MAX_NORMAL} kedipan/menit
-            </span>
+        {/* Minute-by-Minute Visual Chart + Evaluation Table */}
+        <section className="res-surface">
+          <div className="res-section-head">
+            <div>
+              <span className="res-label-cap">Pemantauan Per 60 Detik</span>
+              <h2 className="res-section-title">Analisis Kedipan Tiap 1 Menit</h2>
+            </div>
+            <div className="res-legend">
+              <span><i className="dot normal" /> Normal (15–20)</span>
+              <span><i className="dot warning" /> Kurang (&lt; 15)</span>
+              <span><i className="dot elevated" /> Tinggi (&gt; 20)</span>
+            </div>
           </div>
 
+          {/* Clean Visual Bar Strip when there is data */}
+          {(minuteLogs.length > 0 || currentCycleSeconds > 0) && (
+            <div className="res-chart-box">
+              <div
+                className="res-chart-band"
+                style={{
+                  bottom: `${(BLINK_STANDARD.MIN_NORMAL / maxBarBlinks) * 100}%`,
+                  height: `${((BLINK_STANDARD.MAX_NORMAL - BLINK_STANDARD.MIN_NORMAL) / maxBarBlinks) * 100}%`,
+                }}
+              >
+                <span>Standar 15–20/mnt</span>
+              </div>
+
+              <div className="res-chart-cols">
+                {minuteLogs.map((m) => {
+                  const hPct = Math.max(8, Math.min(100, (m.blinksInMinute / maxBarBlinks) * 100));
+                  return (
+                    <div key={m.minuteNumber} className="res-chart-col">
+                      <span className="res-bar-num">{m.blinksInMinute}</span>
+                      <div className="res-bar-rail">
+                        <div className={`res-bar-fill ${m.severity}`} style={{ height: `${hPct}%` }} />
+                      </div>
+                      <span className="res-bar-lbl">M{m.minuteNumber}</span>
+                    </div>
+                  );
+                })}
+
+                {currentCycleSeconds > 0 && (
+                  <div className="res-chart-col">
+                    <span className="res-bar-num dim">{currentCycleBlinks}*</span>
+                    <div className="res-bar-rail">
+                      <div
+                        className="res-bar-fill progress"
+                        style={{
+                          height: `${Math.max(8, Math.min(100, (currentCycleBlinks / maxBarBlinks) * 100))}%`,
+                        }}
+                      />
+                    </div>
+                    <span className="res-bar-lbl">M{minuteLogs.length + 1} ({currentCycleSeconds}s)</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Clean Table */}
           <div className="hosp-table-scroll">
             <table className="hosp-table">
               <thead>
                 <tr>
                   <th>Menit</th>
                   <th>Rentang</th>
-                  <th>Jumlah Kedipan</th>
+                  <th>Kedipan</th>
                   <th>Rasio / Menit</th>
-                  <th>Rata-rata EAR</th>
+                  <th>Pencapaian</th>
+                  <th>Avg EAR</th>
                   <th>Status</th>
                   <th>Keterangan</th>
                 </tr>
@@ -234,8 +358,17 @@ export default function ResultsPage({
                     <td className="mono font-bold">Menit {m.minuteNumber}</td>
                     <td className="mono text-dim">{m.windowRange}</td>
                     <td className="mono font-bold">{m.blinksInMinute} kedipan</td>
-                    <td className="mono">
-                      {m.blinksInMinute} BPM ({m.minStandardPct}%)
+                    <td className="mono">{m.blinksInMinute} BPM</td>
+                    <td>
+                      <div className="hosp-ratio-cell">
+                        <div className="hosp-ratio-bar">
+                          <div
+                            className={`hosp-ratio-fill ${m.severity}`}
+                            style={{ width: `${Math.min(100, m.minStandardPct)}%` }}
+                          />
+                        </div>
+                        <span className="mono">{m.minStandardPct}%</span>
+                      </div>
                     </td>
                     <td className="mono">{Number(m.avgEar || 0.28).toFixed(3)}</td>
                     <td>
@@ -257,6 +390,21 @@ export default function ResultsPage({
                         ? `${((currentCycleBlinks / currentCycleSeconds) * 60).toFixed(1)} BPM (est.)`
                         : '—'}
                     </td>
+                    <td>
+                      <div className="hosp-ratio-cell">
+                        <div className="hosp-ratio-bar">
+                          <div
+                            className="hosp-ratio-fill elevated"
+                            style={{
+                              width: `${Math.min(100, Math.round((currentCycleBlinks / BLINK_STANDARD.MIN_NORMAL) * 100))}%`,
+                            }}
+                          />
+                        </div>
+                        <span className="mono">
+                          {Math.round((currentCycleBlinks / BLINK_STANDARD.MIN_NORMAL) * 100)}%
+                        </span>
+                      </div>
+                    </td>
                     <td className="mono">{report.avgEar.toFixed(3)}</td>
                     <td>
                       <span className="hosp-status-chip neutral">Sedang Berjalan</span>
@@ -269,48 +417,82 @@ export default function ResultsPage({
               </tbody>
             </table>
           </div>
-        </div>
+        </section>
 
-        {/* Row 3: Simple Parameter Reference Table */}
-        <div className="simple-panel">
-          <div className="simple-table-head">
-            <h3 className="simple-table-title">Parameter Pemeriksaan</h3>
-            <button type="button" onClick={onReset} className="simple-reset-link">
-              <RotateCcw size={13} />
-              <span>Reset Data</span>
-            </button>
-          </div>
+        {/* Bottom 2-Column Row: Parameter Reference + Recent Blink Log */}
+        <section className="res-bottom-grid">
+          <div className="res-surface">
+            <div className="res-section-head">
+              <div>
+                <span className="res-label-cap">Ringkasan Metrik</span>
+                <h2 className="res-section-title">Parameter Pemeriksaan</h2>
+              </div>
+              <button type="button" onClick={onReset} className="simple-reset-link">
+                <RotateCcw size={13} />
+                <span>Reset Data</span>
+              </button>
+            </div>
 
-          <div className="hosp-table-scroll">
-            <table className="hosp-table">
-              <thead>
-                <tr>
-                  <th>Parameter</th>
-                  <th>Hasil</th>
-                  <th>Standar Rujukan</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {report.diagnosticTable.slice(0, 4).map((row, idx) => (
-                  <tr key={idx}>
-                    <td className="font-semibold">{row.parameter}</td>
-                    <td className="mono font-bold">{row.measured}</td>
-                    <td className="mono text-dim">{row.reference}</td>
-                    <td>
-                      <span className={`hosp-status-chip ${row.tone}`}>{row.status}</span>
-                    </td>
+            <div className="hosp-table-scroll">
+              <table className="hosp-table">
+                <thead>
+                  <tr>
+                    <th>Parameter</th>
+                    <th>Hasil</th>
+                    <th>Standar Rujukan</th>
+                    <th>Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {report.diagnosticTable.slice(0, 4).map((row, idx) => (
+                    <tr key={idx}>
+                      <td className="font-semibold">{row.parameter}</td>
+                      <td className="mono font-bold">{row.measured}</td>
+                      <td className="mono text-dim">{row.reference}</td>
+                      <td>
+                        <span className={`hosp-status-chip ${row.tone}`}>{row.status}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+
+          <div className="res-surface">
+            <div className="res-section-head">
+              <div>
+                <span className="res-label-cap">Telemetri Terakhir</span>
+                <h2 className="res-section-title">Catatan Kedipan ({blinkEvents.length})</h2>
+              </div>
+            </div>
+
+            {recentBlinks.length === 0 ? (
+              <div className="res-empty-blinks">
+                Belum ada kedipan yang tercatat pada sesi ini.
+              </div>
+            ) : (
+              <div className="res-blink-list">
+                {recentBlinks.map((ev, idx) => (
+                  <div key={ev.id || idx} className="res-blink-row">
+                    <span className="mono text-dim">#{ev.id || blinkEvents.length - idx}</span>
+                    <span className="mono">
+                      {ev.clockTime || formatDuration(Math.floor((ev.timestamp || 0) / 1000))}
+                    </span>
+                    <span className="mono text-cyan">EAR {Number(ev.ear).toFixed(3)}</span>
+                    <span className="mono text-dim">
+                      {ev.durationMs ? `${ev.durationMs} ms` : 'Valid'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
       </div>
 
       {/* ========================================================
           DEDICATED CLEAN A4 PRINT / PDF LAYOUT
-          (Hidden on screen, crisp white paper format when saved as PDF)
           ======================================================== */}
       <div className="pdf-print-sheet" aria-hidden="true">
         <header className="pdf-letterhead">
