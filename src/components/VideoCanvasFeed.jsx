@@ -34,6 +34,7 @@ export default function VideoCanvasFeed({
   onToggleHaarRoi,
   propIsPaused = false,
   onTogglePause,
+  onOpenResults,
   onRegisterTogglePip,
   onRegisterFileUpload,
 }) {
@@ -677,17 +678,24 @@ export default function VideoCanvasFeed({
         {/* Floating Paused Overlay Badge */}
         {propIsPaused && (
           <div className="video-paused-overlay">
-            <Pause size={18} />
+            <Pause size={16} />
             <div>
-              <strong>Sesi Dijeda (Paused)</strong>
-              <span>Timer 1 menit &amp; peringatan dihentikan sementara</span>
+              <strong>Sesi dijeda</strong>
+              <span>Timer 1 menit berhenti sementara</span>
             </div>
-            {onTogglePause && (
-              <button type="button" onClick={onTogglePause} className="btn-primary" style={{ padding: '5px 12px' }}>
-                <Play size={13} />
-                <span>Lanjutkan</span>
-              </button>
-            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {onOpenResults && (
+                <button type="button" onClick={onOpenResults} className="btn-secondary" style={{ padding: '5px 11px' }}>
+                  <span>Lihat Hasil</span>
+                </button>
+              )}
+              {onTogglePause && (
+                <button type="button" onClick={onTogglePause} className="btn-primary" style={{ padding: '5px 12px' }}>
+                  <Play size={13} />
+                  <span>Lanjutkan</span>
+                </button>
+              )}
+            </div>
           </div>
         )}
 

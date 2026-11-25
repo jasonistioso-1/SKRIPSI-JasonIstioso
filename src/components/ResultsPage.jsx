@@ -166,7 +166,7 @@ export default function ResultsPage({
               </div>
               <h1 className="paper-letter-title">Surat Hasil Pemeriksaan Kedipan Mata</h1>
               <p className="paper-letter-sub">
-                Eye Blink Detection System — Evaluasi Frekuensi Kedipan &amp; Eye Aspect Ratio
+                Eye Blink Detection System • Frekuensi Kedipan &amp; Eye Aspect Ratio
               </p>
             </div>
 
@@ -473,7 +473,7 @@ export default function ResultsPage({
           <div>
             <div className="pdf-clinic-name">Jason Istioso&apos;s Clinic</div>
             <div className="pdf-system-name">
-              <strong>Surat Hasil Pemeriksaan Kedipan Mata</strong> — Eye Blink Detection System
+              <strong>Surat Hasil Pemeriksaan Kedipan Mata</strong> • Eye Blink Detection System
             </div>
           </div>
           <div className="pdf-meta-right">

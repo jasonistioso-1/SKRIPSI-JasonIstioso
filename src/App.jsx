@@ -208,8 +208,8 @@ export default function App() {
   // Enforce: Hasil page can only be opened when Pause is pressed
   const handleNavigateView = (nextView) => {
     if (nextView === 'results' && !isSessionPaused) {
-      setPauseGateToast('Tekan tombol Pause terlebih dahulu untuk melihat surat hasil.');
-      setTimeout(() => setPauseGateToast(null), 3500);
+      setPauseGateToast('Tekan Pause dulu untuk membuka hasil.');
+      setTimeout(() => setPauseGateToast(null), 3000);
       return;
     }
     setCurrentView(nextView);
@@ -370,7 +370,7 @@ export default function App() {
             minuteNumber: minuteNum,
             blinksInMinute,
             severity: evaluation.severity,
-            message: `Peringatan Menit ke-${minuteNum}: Jumlah kedipan hanya ${blinksInMinute} kali (Standar umum: ${BLINK_STANDARD.MIN_NORMAL}–${BLINK_STANDARD.MAX_NORMAL} kedipan/menit). Istirahatkan mata & berkedip secara sadar!`,
+            message: `Menit ke-${minuteNum}: baru ${blinksInMinute} kedipan (standar ${BLINK_STANDARD.MIN_NORMAL}-${BLINK_STANDARD.MAX_NORMAL}/menit). Istirahatkan mata sejenak.`,
           });
         }
       }
@@ -624,23 +624,6 @@ export default function App() {
             </div>
           )}
 
-          {/* Paused Ready Pill: Results Unlocked Live */}
-          {isSessionPaused && (
-            <div className="paused-ready-bar">
-              <span>
-                Sesi dijeda — hasil terbaru ({stats.totalBlinks} kedipan • {stats.bpm} BPM) siap dilihat.
-              </span>
-              <button
-                type="button"
-                onClick={() => handleNavigateView('results')}
-                className="paused-ready-cta"
-              >
-                <span>Buka Surat Hasil</span>
-                <ArrowRight size={13} />
-              </button>
-            </div>
-          )}
-
           {/* Calibration Toast Banner */}
           {calibrationToast && (
             <div className="studio-toast-banner">
@@ -717,6 +700,7 @@ export default function App() {
               onToggleHaarRoi={() => setShowHaarRoi((p) => !p)}
               propIsPaused={isSessionPaused}
               onTogglePause={handleTogglePause}
+              onOpenResults={() => handleNavigateView('results')}
               onRegisterTogglePip={(fn) => {
                 togglePipRef.current = fn;
               }}
