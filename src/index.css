@@ -8058,3 +8058,437 @@ body {
   color: #38bdf8;
   font-weight: 600;
 }
+
+
+/* ========================================================
+   FORMAL DOCTOR'S RESULT LETTER LAYOUT (.doc-*)
+   ======================================================== */
+.doc-page {
+  width: 100%;
+  min-height: calc(100vh - 52px);
+  background: radial-gradient(900px 460px at 50% 0%, rgba(56, 189, 248, 0.07), transparent 65%), #07090e;
+  padding: 24px 20px 64px;
+}
+
+.doc-container {
+  max-width: 1060px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.doc-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.doc-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.doc-letter {
+  background: #0e1118;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 4px solid #38bdf8;
+  border-radius: 16px;
+  padding: 32px 34px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+@media (max-width: 720px) {
+  .doc-letter {
+    padding: 20px 16px;
+    gap: 22px;
+  }
+}
+
+.doc-letterhead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding-bottom: 20px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.12);
+}
+
+.doc-clinic-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #38bdf8;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+
+.doc-letter-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 2.5vw, 1.7rem);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: #f8fafc;
+}
+
+.doc-letter-sub {
+  margin-top: 4px;
+  font-size: 0.83rem;
+  color: #94a3b8;
+}
+
+.doc-meta-box {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 14px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.doc-meta-box div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.doc-meta-box span {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+}
+
+.doc-meta-box strong {
+  font-size: 0.78rem;
+  color: #e2e8f0;
+}
+
+.doc-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.doc-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.doc-sec-num {
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #38bdf8;
+}
+
+.doc-section-heading h2 {
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #e2e8f0;
+}
+
+.doc-identity-grid {
+  display: grid;
+  grid-template-columns: 1fr minmax(290px, 430px);
+  gap: 20px;
+  align-items: center;
+}
+
+@media (max-width: 920px) {
+  .doc-identity-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.doc-info-table-wrap {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.doc-info-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.83rem;
+}
+
+.doc-info-table th,
+.doc-info-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.doc-info-table tr:last-child th,
+.doc-info-table tr:last-child td {
+  border-bottom: none;
+}
+
+.doc-info-table th {
+  width: 38%;
+  color: #94a3b8;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.doc-info-table td {
+  color: #f1f5f9;
+}
+
+.doc-name-cell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.doc-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.doc-namecard-slot {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 6px;
+}
+
+.doc-verdict-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 16px 20px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-left-width: 4px;
+}
+
+.doc-verdict-banner.normal {
+  border-left-color: #10b981;
+  background: rgba(16, 185, 129, 0.07);
+}
+
+.doc-verdict-banner.warning {
+  border-left-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.07);
+}
+
+.doc-verdict-banner.critical {
+  border-left-color: #f43f5e;
+  background: rgba(244, 63, 94, 0.08);
+}
+
+.doc-verdict-banner.elevated {
+  border-left-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.07);
+}
+
+.doc-verdict-kicker {
+  display: block;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+
+.doc-verdict-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.05rem;
+  color: #f8fafc;
+}
+
+.doc-verdict-banner.normal .doc-verdict-status { color: #34d399; }
+.doc-verdict-banner.warning .doc-verdict-status { color: #fbbf24; }
+.doc-verdict-banner.critical .doc-verdict-status { color: #fb7185; }
+.doc-verdict-banner.elevated .doc-verdict-status { color: #38bdf8; }
+
+.doc-verdict-sub {
+  margin-top: 4px;
+  font-size: 0.84rem;
+  color: #cbd5e1;
+}
+
+.doc-verdict-bpm {
+  text-align: right;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.doc-verdict-bpm span {
+  display: block;
+  font-size: 0.66rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.doc-verdict-bpm strong {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #f8fafc;
+  line-height: 1.1;
+}
+
+.doc-verdict-bpm small {
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+
+.doc-kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 680px) {
+  .doc-kpi-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.doc-kpi-item {
+  padding: 11px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.doc-kpi-item span {
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+
+.doc-kpi-item strong {
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.doc-notes-box {
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.doc-notes-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin-bottom: 5px;
+}
+
+.doc-notes-summary {
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: #cbd5e1;
+  margin-bottom: 10px;
+}
+
+.doc-notes-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.81rem;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+
+.doc-letter-footer {
+  margin-top: 6px;
+  padding-top: 20px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.14);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.doc-disclaimer {
+  max-width: 540px;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: #64748b;
+}
+
+.doc-disclaimer strong {
+  color: #94a3b8;
+}
+
+.doc-signature-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-width: 210px;
+  font-size: 0.78rem;
+  color: #cbd5e1;
+}
+
+.doc-sign-role {
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.doc-sign-script {
+  font-family: 'Caveat', 'Plus Jakarta Sans', cursive;
+  font-size: 1.65rem;
+  color: #38bdf8;
+  margin: 10px 0 4px;
+  padding: 0 18px 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+@media print {
+  .doc-page {
+    background: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+}
