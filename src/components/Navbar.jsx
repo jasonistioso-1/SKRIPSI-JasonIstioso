@@ -70,8 +70,8 @@ export default function Navbar({
           <OcularVisionLogo size={18} />
         </div>
         <div className="brand-text">
-          <div className="brand-title">Eye Blink Detection</div>
-          <div className="brand-subtitle">Jason Istioso</div>
+          <div className="brand-title">Eye Blink Detection System</div>
+          <div className="brand-subtitle">Jason Istioso&apos;s Clinic</div>
         </div>
       </div>
 

@@ -7075,3 +7075,212 @@ body {
     border-color: #cbd5e1 !important;
   }
 }
+
+
+/* ========================================================
+   DEDICATED CLEAN A4 PDF PRINT SHEET
+   ======================================================== */
+.pdf-print-sheet {
+  display: none;
+}
+
+@page {
+  size: A4;
+  margin: 14mm;
+}
+
+@media print {
+  html,
+  body,
+  #root,
+  .app-container,
+  .simple-results-page {
+    background: #ffffff !important;
+    color: #111827 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .navbar,
+  .screen-only-results,
+  .mobile-bottom-navbar {
+    display: none !important;
+  }
+
+  .pdf-print-sheet {
+    display: block !important;
+    width: 100%;
+    font-family: 'Inter', Arial, sans-serif;
+    color: #111827;
+    font-size: 11px;
+    line-height: 1.45;
+  }
+
+  .pdf-letterhead {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+    border-bottom: 2px solid #0f172a;
+  }
+
+  .pdf-clinic-name {
+    font-size: 18px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+  }
+
+  .pdf-system-name {
+    font-size: 11px;
+    color: #475569;
+    margin-top: 2px;
+  }
+
+  .pdf-meta-right {
+    text-align: right;
+    font-size: 10px;
+    color: #334155;
+  }
+
+  .pdf-patient-box {
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    background: #f8fafc;
+    break-inside: avoid;
+  }
+
+  .pdf-patient-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  .pdf-field-label {
+    display: block;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #64748b;
+  }
+
+  .pdf-field-value {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-top: 2px;
+  }
+
+  .pdf-kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+    break-inside: avoid;
+  }
+
+  .pdf-kpi-box {
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 9px 10px;
+  }
+
+  .pdf-kpi-box span {
+    display: block;
+    font-size: 9px;
+    color: #64748b;
+  }
+
+  .pdf-kpi-box strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 800;
+    color: #0f172a;
+    margin-top: 2px;
+  }
+
+  .pdf-section {
+    margin-bottom: 14px;
+    break-inside: avoid;
+  }
+
+  .pdf-section-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #0f172a;
+    padding-bottom: 4px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .pdf-summary-heading {
+    font-size: 12px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 3px;
+  }
+
+  .pdf-summary-text {
+    color: #334155;
+    margin-bottom: 6px;
+  }
+
+  .pdf-advice-list {
+    margin: 0;
+    padding-left: 16px;
+    color: #334155;
+  }
+
+  .pdf-advice-list li {
+    margin-bottom: 3px;
+  }
+
+  .pdf-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10px;
+  }
+
+  .pdf-table th,
+  .pdf-table td {
+    border: 1px solid #cbd5e1;
+    padding: 6px 8px;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .pdf-table th {
+    background: #f1f5f9;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .pdf-footer {
+    margin-top: 22px;
+    padding-top: 10px;
+    border-top: 1px solid #cbd5e1;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    font-size: 10px;
+    color: #475569;
+    break-inside: avoid;
+  }
+
+  .pdf-sign-box {
+    text-align: center;
+    min-width: 170px;
+  }
+
+  .pdf-sign-line {
+    height: 36px;
+    border-bottom: 1px solid #64748b;
+    margin-bottom: 4px;
+  }
+}

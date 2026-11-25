@@ -218,7 +218,7 @@ export function generateHospitalClinicalReport({
       diagnosisTitle = 'Hiper-Frekuensi Kedipan (Indikasi Iritasi / Kelelahan)';
       diagnosisBadge = 'EVALUASI KELELAHAN';
       severity = 'high';
-      cvsRisk = 'Sedang (Ocular Fatigue)';
+      cvsRisk = 'Sedang (Kelelahan Mata)';
       summaryText = `Terdeteksi ${validatedAvgBpm} kedipan/menit pada sesi ${displayName}, melebihi 25 kedipan/menit. Peningkatan refleks berkedip sering menjadi mekanisme kompensasi mata terhadap kekeringan awal, silau, atau iritasi.`;
       recommendations = [
         'Hentikan paparan layar sejenak, pejamkan mata secara rileks selama 30 detik, dan periksa kenyamanan lensa/kacamata.',

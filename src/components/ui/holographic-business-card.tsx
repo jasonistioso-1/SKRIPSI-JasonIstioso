@@ -717,7 +717,7 @@ function Back({
           <span className="bc-back-qr-container">
             <img
               src={QR_IMG}
-              alt={`QR code to ${websiteUrl || "OcularVision"}`}
+              alt={`QR code to ${websiteUrl || "Eye Blink Detection System"}`}
               draggable={false}
               style={{ display: "block", width: "100%", height: "auto" }}
             />

@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import {
   ArrowLeft,
   Download,
-  Printer,
+  FileDown,
   RotateCcw,
   Edit3,
   AlertTriangle,
@@ -72,16 +72,29 @@ export default function ResultsPage({
             ? 'Frekuensi Tinggi'
             : 'Menunggu Data';
 
+  const handlePrintPdf = () => {
+    const prevTitle = document.title;
+    const safeName = displayName.replace(/[^a-zA-Z0-9_-]/g, '_');
+    document.title = `Eye_Blink_Detection_Report_${safeName}`;
+    window.print();
+    setTimeout(() => {
+      document.title = prevTitle;
+    }, 500);
+  };
+
   return (
     <div className="simple-results-page">
-      <div className="simple-results-container">
+      {/* ========================================================
+          SCREEN VIEW (Dark Mode Clean Layout)
+          ======================================================== */}
+      <div className="simple-results-container screen-only-results">
         {/* Simple Clean Header */}
         <div className="simple-results-header">
           <div>
-            <h1 className="simple-results-title">Hasil Analisis Kedipan</h1>
+            <h1 className="simple-results-title">Hasil Pemeriksaan Kedipan Mata</h1>
             <p className="simple-results-sub">
-              {displayName} • Durasi aktif {formatDuration(activeSeconds)} • Standar umum:{' '}
-              {BLINK_STANDARD.MIN_NORMAL}–{BLINK_STANDARD.MAX_NORMAL} kedipan/menit
+              Jason Istioso&apos;s Clinic • Eye Blink Detection System • {displayName} • Durasi{' '}
+              {formatDuration(activeSeconds)}
             </p>
           </div>
 
@@ -90,13 +103,13 @@ export default function ResultsPage({
               <ArrowLeft size={14} />
               <span>Kembali</span>
             </button>
-            <button type="button" onClick={() => window.print()} className="hosp-btn-secondary">
-              <Printer size={14} />
-              <span>Cetak</span>
-            </button>
-            <button type="button" onClick={onExportCSV} className="hosp-btn-primary">
+            <button type="button" onClick={onExportCSV} className="hosp-btn-secondary">
               <Download size={14} />
               <span>Export CSV</span>
+            </button>
+            <button type="button" onClick={handlePrintPdf} className="hosp-btn-primary">
+              <FileDown size={14} />
+              <span>Simpan PDF</span>
             </button>
           </div>
         </div>
@@ -110,15 +123,15 @@ export default function ResultsPage({
                 intensity={0.35}
                 greeting={`Halo, ${displayName}`}
                 title={displayName}
-                subtitle="hasil analisis mata"
-                location="INDONESIA"
+                subtitle="hasil analisis kedipan"
+                location="JASON ISTIOSO'S CLINIC"
                 websiteUrl={null}
                 websiteLabel={`${report.validatedAvgBpm} BPM • ${totalBlinks} kedipan`}
                 name={displayName}
-                nameJp="Laporan Pemeriksaan Kedipan"
-                tagline={`Standar: ${BLINK_STANDARD.MIN_NORMAL}–${BLINK_STANDARD.MAX_NORMAL} kedipan/menit`}
+                nameJp="Jason Istioso's Clinic"
+                tagline="Eye Blink Detection System"
                 taglineJp={`Rata-rata: ${report.validatedAvgBpm} BPM • EAR ${report.avgEar.toFixed(3)}`}
-                email="Eye Blink Detection System"
+                email="Standar: 15–20 kedipan/menit"
                 qrCaption="Klik kartu untuk balik"
                 qrCaptionJp={`${displayName} • ${formatDuration(activeSeconds)}`}
               />
@@ -136,7 +149,7 @@ export default function ResultsPage({
 
           <div className="simple-panel simple-summary-box">
             <div className="simple-summary-head">
-              <span className="simple-section-label">Ringkasan Pemeriksaan</span>
+              <span className="simple-section-label">Jason Istioso&apos;s Clinic • Ringkasan</span>
               <span className={`hosp-status-chip ${statusTone}`}>
                 {statusTone === 'normal' ? (
                   <CheckCircle2 size={12} />
@@ -234,7 +247,6 @@ export default function ResultsPage({
                   </tr>
                 ))}
 
-                {/* Current in-progress minute */}
                 {(currentCycleSeconds > 0 || minuteLogs.length === 0) && (
                   <tr>
                     <td className="mono text-dim">Menit {minuteLogs.length + 1}</td>
@@ -294,6 +306,162 @@ export default function ResultsPage({
             </table>
           </div>
         </div>
+      </div>
+
+      {/* ========================================================
+          DEDICATED CLEAN A4 PRINT / PDF LAYOUT
+          (Hidden on screen, crisp white paper format when saved as PDF)
+          ======================================================== */}
+      <div className="pdf-print-sheet" aria-hidden="true">
+        <header className="pdf-letterhead">
+          <div>
+            <div className="pdf-clinic-name">Jason Istioso&apos;s Clinic</div>
+            <div className="pdf-system-name">
+              Eye Blink Detection System • Laporan Hasil Pemeriksaan Kedipan Mata
+            </div>
+          </div>
+          <div className="pdf-meta-right">
+            <div>
+              <strong>Tanggal:</strong> {report.evaluatedAt}
+            </div>
+            <div>
+              <strong>Durasi Sesi:</strong> {formatDuration(activeSeconds)}
+            </div>
+          </div>
+        </header>
+
+        <section className="pdf-patient-box">
+          <div className="pdf-patient-grid">
+            <div>
+              <span className="pdf-field-label">Nama Peserta / Pasien</span>
+              <strong className="pdf-field-value">{displayName}</strong>
+            </div>
+            <div>
+              <span className="pdf-field-label">Status Hasil</span>
+              <strong className="pdf-field-value">{statusShortLabel}</strong>
+            </div>
+            <div>
+              <span className="pdf-field-label">Standar Rujukan</span>
+              <strong className="pdf-field-value">
+                {BLINK_STANDARD.MIN_NORMAL}–{BLINK_STANDARD.MAX_NORMAL} kedipan/menit
+              </strong>
+            </div>
+            <div>
+              <span className="pdf-field-label">Threshold EAR</span>
+              <strong className="pdf-field-value">{threshold.toFixed(3)}</strong>
+            </div>
+          </div>
+        </section>
+
+        <section className="pdf-kpi-row">
+          <div className="pdf-kpi-box">
+            <span>Rasio Kedipan / Menit</span>
+            <strong>{report.validatedAvgBpm} BPM</strong>
+          </div>
+          <div className="pdf-kpi-box">
+            <span>Total Kedipan</span>
+            <strong>{totalBlinks} kedipan</strong>
+          </div>
+          <div className="pdf-kpi-box">
+            <span>Rata-rata EAR</span>
+            <strong>{report.avgEar.toFixed(3)}</strong>
+          </div>
+          <div className="pdf-kpi-box">
+            <span>Alert (&lt; 15/menit)</span>
+            <strong>{report.alertMinutesCount} kali</strong>
+          </div>
+        </section>
+
+        <section className="pdf-section">
+          <h2 className="pdf-section-title">Kesimpulan &amp; Saran</h2>
+          <p className="pdf-summary-heading">{report.diagnosisTitle}</p>
+          <p className="pdf-summary-text">{report.summaryText}</p>
+          <ul className="pdf-advice-list">
+            {report.recommendations.slice(0, 3).map((rec, idx) => (
+              <li key={idx}>{rec}</li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="pdf-section">
+          <h2 className="pdf-section-title">Tabel Analisis Tiap 1 Menit</h2>
+          <table className="pdf-table">
+            <thead>
+              <tr>
+                <th>Menit</th>
+                <th>Rentang</th>
+                <th>Kedipan</th>
+                <th>Rasio / Menit</th>
+                <th>Avg EAR</th>
+                <th>Status</th>
+                <th>Keterangan</th>
+              </tr>
+            </thead>
+            <tbody>
+              {minuteLogs.length === 0 ? (
+                <tr>
+                  <td>Menit 1</td>
+                  <td>{currentCycleSeconds}s / 60s</td>
+                  <td>{currentCycleBlinks} kedipan</td>
+                  <td>{report.validatedAvgBpm} BPM</td>
+                  <td>{report.avgEar.toFixed(3)}</td>
+                  <td>Berjalan</td>
+                  <td>Sesi belum mencapai 60 detik penuh.</td>
+                </tr>
+              ) : (
+                minuteLogs.map((m) => (
+                  <tr key={m.minuteNumber}>
+                    <td>Menit {m.minuteNumber}</td>
+                    <td>{m.windowRange}</td>
+                    <td>{m.blinksInMinute}</td>
+                    <td>
+                      {m.blinksInMinute} BPM ({m.minStandardPct}%)
+                    </td>
+                    <td>{Number(m.avgEar || 0.28).toFixed(3)}</td>
+                    <td>{m.alertTriggered ? `Alert (${m.status})` : m.status}</td>
+                    <td>{m.aiNote}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </section>
+
+        <section className="pdf-section">
+          <h2 className="pdf-section-title">Parameter Pemeriksaan</h2>
+          <table className="pdf-table">
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Hasil Terukur</th>
+                <th>Standar Rujukan</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {report.diagnosticTable.slice(0, 4).map((row, idx) => (
+                <tr key={idx}>
+                  <td>{row.parameter}</td>
+                  <td>{row.measured}</td>
+                  <td>{row.reference}</td>
+                  <td>{row.status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+
+        <footer className="pdf-footer">
+          <div>
+            Dicetak dari <strong>Eye Blink Detection System</strong> —{' '}
+            <strong>Jason Istioso&apos;s Clinic</strong>
+          </div>
+          <div className="pdf-sign-box">
+            <span>Pemeriksa / Sistem</span>
+            <div className="pdf-sign-line" />
+            <strong>Jason Istioso&apos;s Clinic</strong>
+          </div>
+        </footer>
       </div>
     </div>
   );

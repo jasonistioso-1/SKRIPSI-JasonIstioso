@@ -262,7 +262,7 @@ export class BlinkTracker {
     const link = document.createElement('a');
     link.setAttribute('href', url);
     const safeName = username ? username.replace(/[^a-zA-Z0-9_-]/g, '_') : 'telemetry';
-    link.setAttribute('download', `ocular_blink_${safeName}_${Date.now()}.csv`);
+    link.setAttribute('download', `eye_blink_detection_${safeName}_${Date.now()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

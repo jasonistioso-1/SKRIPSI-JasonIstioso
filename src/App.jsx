@@ -406,7 +406,7 @@ export default function App() {
   useEffect(() => {
     const handleVisibility = () => {
       if (!document.hidden) {
-        document.title = 'OcularVision • Eye Blink Detection & Clinical EAR Monitor';
+        document.title = "Eye Blink Detection System • Jason Istioso's Clinic";
       }
     };
     document.addEventListener('visibilitychange', handleVisibility);
@@ -498,10 +498,10 @@ export default function App() {
             </button>
             <div className="simple-telemetry-meta">
               <span className="live-dot ready" />
-              <span className="simple-meta-title">Real-Time Ocular Telemetry</span>
+              <span className="simple-meta-title">Eye Blink Detection System</span>
               <span className="simple-meta-divider">•</span>
               <span className="simple-meta-sub">
-                Menit #{currentMinuteNumber} ({currentCycleSeconds}s/60s) • {currentCycleBlinks}/15 std
+                Jason Istioso&apos;s Clinic • Menit #{currentMinuteNumber} ({currentCycleSeconds}s/60s)
               </span>
               {username && (
                 <>
