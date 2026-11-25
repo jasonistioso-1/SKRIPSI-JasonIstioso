@@ -128,6 +128,7 @@ const FONT_CSS = `
 
 .bc-front-hero {
   margin-top: auto;
+  margin-bottom: auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -135,7 +136,7 @@ const FONT_CSS = `
 
 .bc-front-hero-titles {
   display: block;
-  line-height: 0.85;
+  line-height: 0.94;
   text-shadow: 0 2px 18px rgba(10, 40, 90, 0.18);
 }
 
@@ -544,7 +545,7 @@ function Front({
       >
         <span
           className="bc-front-sky-inner"
-          style={{ padding: `${mm(5)} ${mm(6.5)} ${mm(6.5)}` }}
+          style={{ padding: `${mm(4.8)} ${mm(6.5)} ${mm(6)}` }}
         >
           <span className="bc-front-greeting" style={{ gap: mm(1.6), fontSize: mm(2.8) }}>
             <span aria-hidden>👋</span> {greeting}
@@ -553,8 +554,7 @@ function Front({
             className="bc-front-hero"
             style={{
               gap: mm(3),
-              transform: `translateY(${isDefaultHero ? mm(-3.5) : mm(0.8)})`,
-              marginTop: isDefaultHero ? 0 : mm(1.5),
+              paddingTop: mm(1.2),
             }}
           >
             <span className="bc-front-hero-titles" style={{ minWidth: 0 }}>
@@ -562,7 +562,7 @@ function Front({
                 className="bc-front-hero-main"
                 style={{
                   fontSize: mm(titleFontMm),
-                  lineHeight: 1.05,
+                  lineHeight: 0.98,
                   maxWidth: "100%",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
@@ -575,7 +575,7 @@ function Front({
                 className="bc-front-hero-script"
                 style={{
                   fontSize: mm(isDefaultHero ? 12.5 * 0.95 * 0.68 : 6.4),
-                  margin: isDefaultHero ? "0.05em 0 0 0.15em" : "0.18em 0 0 0.1em",
+                  margin: isDefaultHero ? "0.08em 0 0 0.12em" : "0.14em 0 0 0.08em",
                 }}
               >
                 {subtitle}
@@ -586,7 +586,7 @@ function Front({
               alt={`${title} Avatar`}
               draggable={false}
               className="bc-front-avatar"
-              style={{ width: mm(17) }}
+              style={{ width: mm(17.5) }}
             />
           </span>
         </span>
