@@ -10,6 +10,8 @@ import {
   Clock,
   ShieldAlert,
   Stethoscope,
+  Lock,
+  Pause,
 } from 'lucide-react';
 import BusinessCard from './ui/holographic-business-card';
 import { BLINK_STANDARD, generateHospitalClinicalReport } from '../lib/clinicalAnalysis';
@@ -30,6 +32,8 @@ export default function ResultsPage({
   currentCycleBlinks = 0,
   threshold = 0.22,
   baselineOpenEar = 0.28,
+  isSessionPaused = false,
+  onPauseAndUnlock,
   onBackToStudio,
   onReset,
   onExportCSV,
@@ -47,13 +51,41 @@ export default function ResultsPage({
     [username, stats, minuteLogs, blinkEvents, threshold, baselineOpenEar]
   );
 
+  // Guard: Hasil hanya bisa dilihat saat sesi dalam kondisi Pause
+  if (!isSessionPaused) {
+    return (
+      <div className="doc-page">
+        <div className="doc-lock-card">
+          <div className="doc-lock-icon">
+            <Lock size={24} />
+          </div>
+          <h2>Sesi Masih Berjalan</h2>
+          <p>
+            Tekan tombol <strong>Pause</strong> terlebih dahulu agar hasil pemeriksaan dapat
+            dibuka dengan data terbaru.
+          </p>
+          <div className="doc-lock-actions">
+            <button type="button" onClick={onBackToStudio} className="res-btn secondary">
+              <ArrowLeft size={15} />
+              <span>Kembali ke Studio</span>
+            </button>
+            <button type="button" onClick={onPauseAndUnlock} className="res-btn primary">
+              <Pause size={15} />
+              <span>Pause &amp; Buka Hasil</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const hasCustomName = Boolean(username && username.trim().length > 0);
   const displayName = report.displayName;
   const activeSeconds = stats.elapsedSeconds || 0;
   const totalBlinks = stats.totalBlinks || 0;
 
   const now = new Date();
-  const docCode = `DOC-JIC-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(
+  const docCode = `JIC-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(
     now.getDate()
   ).padStart(2, '0')}`;
   const dateOnly = now.toLocaleDateString('id-ID', {
@@ -77,12 +109,12 @@ export default function ResultsPage({
     report.severity === 'normal'
       ? 'NORMAL — Sesuai Standar'
       : report.severity === 'critical'
-        ? 'PERHATIAN KHUSUS — Kurang Kedipan Berat'
+        ? 'KURANG KEDIPAN BERAT'
         : report.severity === 'warning'
-          ? 'DI BAWAH STANDAR (< 15 kedipan/menit)'
+          ? 'DI BAWAH STANDAR (< 15/menit)'
           : report.severity === 'elevated' || report.severity === 'high'
-            ? 'FREKUENSI TINGGI (> 20 kedipan/menit)'
-            : 'BELUM LENGKAP — Menunggu Pengukuran';
+            ? 'FREKUENSI TINGGI (> 20/menit)'
+            : 'BELUM ADA DATA';
 
   const handlePrintPdf = () => {
     const prevTitle = document.title;
@@ -104,20 +136,20 @@ export default function ResultsPage({
   return (
     <div className="doc-page">
       {/* ========================================================
-          SCREEN VIEW: STRUCTURED DOCTOR'S RESULT LETTER
+          SCREEN VIEW: CRISP LIGHT-PAPER DOCTOR'S LETTER
           ======================================================== */}
       <div className="doc-container screen-only-results">
         {/* Top Action Toolbar */}
         <div className="doc-toolbar">
           <button type="button" onClick={onBackToStudio} className="res-btn secondary">
             <ArrowLeft size={15} />
-            <span>Kembali ke Studio</span>
+            <span>Lanjutkan Studio</span>
           </button>
 
           <div className="doc-toolbar-right">
             <button type="button" onClick={onReset} className="simple-reset-link">
               <RotateCcw size={13} />
-              <span>Reset Data</span>
+              <span>Reset</span>
             </button>
             <button type="button" onClick={onExportCSV} className="res-btn secondary">
               <Download size={15} />
@@ -130,24 +162,26 @@ export default function ResultsPage({
           </div>
         </div>
 
-        {/* Formal Letter Paper Container */}
-        <article className="doc-letter">
-          {/* Kop Surat */}
-          <header className="doc-letterhead">
-            <div className="doc-clinic-block">
-              <div className="doc-clinic-badge">
-                <Stethoscope size={16} />
+        {/* Crisp Paper Letter Sheet */}
+        <article className="paper-letter">
+          {/* Kop Surat Resmi */}
+          <header className="paper-letterhead">
+            <div className="paper-clinic-side">
+              <div className="paper-clinic-brand">
+                <span className="paper-clinic-icon">
+                  <Stethoscope size={16} />
+                </span>
                 <span>JASON ISTIOSO&apos;S CLINIC</span>
               </div>
-              <h1 className="doc-letter-title">SURAT HASIL PEMERIKSAAN KEDIPAN MATA</h1>
-              <p className="doc-letter-sub">
-                Eye Blink Detection System • Evaluasi Frekuensi Kedipan &amp; Eye Aspect Ratio (EAR)
+              <h1 className="paper-letter-title">SURAT HASIL PEMERIKSAAN KEDIPAN MATA</h1>
+              <p className="paper-letter-sub">
+                Eye Blink Detection System • Pemeriksaan Frekuensi Kedipan &amp; Eye Aspect Ratio
               </p>
             </div>
 
-            <div className="doc-meta-box">
+            <div className="paper-meta-grid">
               <div>
-                <span>No. Dokumen</span>
+                <span>No. Surat</span>
                 <strong className="mono">{docCode}</strong>
               </div>
               <div>
@@ -155,78 +189,75 @@ export default function ResultsPage({
                 <strong>{dateOnly}</strong>
               </div>
               <div>
-                <span>Durasi Uji</span>
+                <span>Durasi</span>
                 <strong className="mono">{formatDuration(activeSeconds)}</strong>
               </div>
             </div>
           </header>
 
           {/* Bagian I: Identitas Pasien & Kartu Nama */}
-          <section className="doc-section">
-            <div className="doc-section-heading">
-              <span className="doc-sec-num">I.</span>
-              <h2>IDENTITAS PASIEN / PESERTA</h2>
+          <section className="paper-section">
+            <div className="paper-sec-title">
+              <span>I.</span> IDENTITAS PASIEN / PESERTA
             </div>
 
-            <div className="doc-identity-grid">
-              <div className="doc-info-table-wrap">
-                <table className="doc-info-table">
-                  <tbody>
-                    <tr>
-                      <th>Nama Lengkap</th>
-                      <td>
-                        <div className="doc-name-cell">
-                          <strong>{displayName}</strong>
-                          <button type="button" onClick={onEditUsername} className="doc-edit-btn">
-                            <Edit3 size={12} />
-                            <span>{hasCustomName ? 'Ubah' : 'Isi Nama'}</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <th>Waktu Pemeriksaan</th>
-                      <td>{report.evaluatedAt}</td>
-                    </tr>
-                    <tr>
-                      <th>Metode Pengukuran</th>
-                      <td>MediaPipe Face Mesh (468 Titik) &amp; Kalkulasi EAR Real-Time</td>
-                    </tr>
-                    <tr>
-                      <th>Standar Acuan Normal</th>
-                      <td>
-                        <strong>
-                          {BLINK_STANDARD.MIN_NORMAL}–{BLINK_STANDARD.MAX_NORMAL} kedipan / menit
-                        </strong>{' '}
-                        (Ambang batas EAR: {threshold.toFixed(3)})
-                      </td>
-                    </tr>
-                    <tr>
-                      <th>Keterangan Sesi</th>
-                      <td>
-                        {totalBlinks} kedipan tercatat dalam {formatDuration(activeSeconds)} (
-                        {report.completedMinutes} siklus 1 menit selesai)
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+            <div className="paper-identity-row">
+              <div className="paper-identity-list">
+                <div className="paper-id-item">
+                  <span className="paper-id-label">Nama Lengkap</span>
+                  <div className="paper-id-val-row">
+                    <strong>{displayName}</strong>
+                    <button type="button" onClick={onEditUsername} className="paper-edit-btn">
+                      <Edit3 size={12} />
+                      <span>{hasCustomName ? 'Ubah Nama' : 'Isi Nama'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="paper-id-item">
+                  <span className="paper-id-label">Waktu Pemeriksaan</span>
+                  <span>{report.evaluatedAt}</span>
+                </div>
+
+                <div className="paper-id-item">
+                  <span className="paper-id-label">Alat Pemeriksaan</span>
+                  <span>Eye Blink Detection System (Kamera &amp; EAR)</span>
+                </div>
+
+                <div className="paper-id-item">
+                  <span className="paper-id-label">Standar Normal</span>
+                  <span>
+                    <strong>
+                      {BLINK_STANDARD.MIN_NORMAL}–{BLINK_STANDARD.MAX_NORMAL} kedipan / menit
+                    </strong>{' '}
+                    (Threshold EAR {threshold.toFixed(3)})
+                  </span>
+                </div>
+
+                <div className="paper-id-item">
+                  <span className="paper-id-label">Ringkasan Sesi</span>
+                  <span>
+                    {totalBlinks} kedipan dalam {formatDuration(activeSeconds)} (
+                    {report.completedMinutes} menit selesai)
+                  </span>
+                </div>
               </div>
 
-              {/* Same Holographic Namecard from Home */}
-              <div className="doc-namecard-slot">
+              {/* Holographic Namecard (Same as Home, username synced) */}
+              <div className="paper-namecard-wrap">
                 <BusinessCard
                   effect="shards"
                   intensity={0.35}
-                  greeting={`Pasien: ${displayName}`}
+                  greeting={`Halo, ${displayName}`}
                   title={displayName}
-                  subtitle="kartu pemeriksaan"
+                  subtitle="hasil pemeriksaan"
                   location="JASON ISTIOSO'S CLINIC"
                   websiteUrl={null}
                   websiteLabel={`${report.validatedAvgBpm} BPM • ${totalBlinks} kedipan`}
                   name={displayName}
                   nameJp="Jason Istioso's Clinic"
                   tagline="Eye Blink Detection System"
-                  taglineJp={`Hasil: ${report.validatedAvgBpm} BPM • EAR ${report.avgEar.toFixed(3)}`}
+                  taglineJp={`Rata-rata: ${report.validatedAvgBpm} BPM • EAR ${report.avgEar.toFixed(3)}`}
                   email={`No. ${docCode}`}
                   qrCaption="Klik kartu untuk balik"
                   qrCaptionJp={`${displayName} • ${dateOnly}`}
@@ -235,17 +266,16 @@ export default function ResultsPage({
             </div>
           </section>
 
-          {/* Bagian II: Hasil Pemeriksaan & Kesimpulan Dokter */}
-          <section className="doc-section">
-            <div className="doc-section-heading">
-              <span className="doc-sec-num">II.</span>
-              <h2>HASIL PEMERIKSAAN &amp; KESIMPULAN MEDIS</h2>
+          {/* Bagian II: Hasil Pemeriksaan & Anjuran */}
+          <section className="paper-section">
+            <div className="paper-sec-title">
+              <span>II.</span> HASIL PEMERIKSAAN &amp; KESIMPULAN
             </div>
 
-            <div className={`doc-verdict-banner ${statusTone}`}>
-              <div className="doc-verdict-left">
-                <span className="doc-verdict-kicker">Status Akhir Pemeriksaan</span>
-                <div className="doc-verdict-status">
+            <div className={`paper-verdict-card ${statusTone}`}>
+              <div className="paper-verdict-main">
+                <span className="paper-verdict-kicker">Hasil Evaluasi</span>
+                <div className="paper-verdict-badge">
                   {statusTone === 'normal' ? (
                     <CheckCircle2 size={18} />
                   ) : statusTone === 'neutral' ? (
@@ -257,38 +287,36 @@ export default function ResultsPage({
                   )}
                   <strong>{statusShortLabel}</strong>
                 </div>
-                <p className="doc-verdict-sub">{report.diagnosisTitle}</p>
+                <div className="paper-verdict-heading">{report.diagnosisTitle}</div>
               </div>
 
-              <div className="doc-verdict-bpm">
+              <div className="paper-bpm-box">
                 <span>Laju Kedipan</span>
                 <strong>{report.validatedAvgBpm}</strong>
                 <small>kedipan / menit</small>
               </div>
             </div>
 
-            {/* Visual Spectrum */}
-            <div className="res-spectrum-box" style={{ marginTop: 14 }}>
-              <div className="res-spectrum-bar">
+            {/* Spectrum Bar */}
+            <div className="paper-spectrum-wrap">
+              <div className="paper-spectrum-bar">
                 <div
-                  className="res-spectrum-normal-zone"
+                  className="paper-spectrum-zone"
                   style={{
                     left: `${normalZoneLeftPct}%`,
                     width: `${normalZoneWidthPct}%`,
                   }}
                 >
-                  <span className="res-zone-tag">Standar 15–20</span>
+                  <span>Normal (15–20)</span>
                 </div>
                 {(activeSeconds > 0 || totalBlinks > 0) && (
                   <div
-                    className={`res-spectrum-marker ${statusTone}`}
+                    className={`paper-spectrum-needle ${statusTone}`}
                     style={{ left: `${markerLeftPct}%` }}
-                  >
-                    <span className="res-marker-dot" />
-                  </div>
+                  />
                 )}
               </div>
-              <div className="res-spectrum-ticks">
+              <div className="paper-spectrum-ticks">
                 <span>0</span>
                 <span>10 (Kurang)</span>
                 <span>15</span>
@@ -297,33 +325,33 @@ export default function ResultsPage({
               </div>
             </div>
 
-            {/* 4 Ringkasan Angka */}
-            <div className="doc-kpi-strip">
-              <div className="doc-kpi-item">
+            {/* 4 Key Numbers */}
+            <div className="paper-kpi-grid">
+              <div className="paper-kpi-tile">
                 <span>Rasio / Menit</span>
                 <strong>{report.validatedAvgBpm} BPM</strong>
               </div>
-              <div className="doc-kpi-item">
+              <div className="paper-kpi-tile">
                 <span>Total Kedipan</span>
                 <strong>{totalBlinks} kali</strong>
               </div>
-              <div className="doc-kpi-item">
+              <div className="paper-kpi-tile">
                 <span>Rata-rata EAR</span>
                 <strong>{report.avgEar.toFixed(3)}</strong>
               </div>
-              <div className="doc-kpi-item">
-                <span>Alert (&lt; 15/mnt)</span>
-                <strong style={{ color: report.alertMinutesCount > 0 ? '#fb7185' : '#34d399' }}>
+              <div className="paper-kpi-tile">
+                <span>Peringatan (&lt; 15/mnt)</span>
+                <strong className={report.alertMinutesCount > 0 ? 'txt-rose' : 'txt-emerald'}>
                   {report.alertMinutesCount} kali
                 </strong>
               </div>
             </div>
 
-            {/* Catatan & Anjuran */}
-            <div className="doc-notes-box">
-              <div className="doc-notes-title">Interpretasi &amp; Anjuran:</div>
-              <p className="doc-notes-summary">{report.summaryText}</p>
-              <ol className="doc-notes-list">
+            {/* Concise Notes */}
+            <div className="paper-advice-box">
+              <p className="paper-advice-summary">{report.summaryText}</p>
+              <div className="paper-advice-title">Anjuran:</div>
+              <ol className="paper-advice-list">
                 {report.recommendations.map((rec, i) => (
                   <li key={i}>{rec}</li>
                 ))}
@@ -331,64 +359,63 @@ export default function ResultsPage({
             </div>
           </section>
 
-          {/* Bagian III: Rincian Pengukuran Tiap 1 Menit */}
-          <section className="doc-section">
-            <div className="doc-section-heading">
-              <span className="doc-sec-num">III.</span>
-              <h2>RINCIAN EVALUASI TIAP 1 MENIT</h2>
+          {/* Bagian III: Rincian Evaluasi Tiap 1 Menit */}
+          <section className="paper-section">
+            <div className="paper-sec-title">
+              <span>III.</span> RINCIAN EVALUASI TIAP 1 MENIT
             </div>
 
-            <div className="hosp-table-scroll">
-              <table className="hosp-table">
+            <div className="paper-table-wrap">
+              <table className="paper-table">
                 <thead>
                   <tr>
                     <th>Menit</th>
                     <th>Rentang</th>
                     <th>Kedipan</th>
                     <th>Rasio / Menit</th>
-                    <th>Rasio Standar</th>
+                    <th>Standar</th>
                     <th>Avg EAR</th>
                     <th>Status</th>
-                    <th>Catatan Pemeriksaan</th>
+                    <th>Keterangan</th>
                   </tr>
                 </thead>
                 <tbody>
                   {minuteLogs.map((m) => (
                     <tr key={m.minuteNumber} className={m.alertTriggered ? 'row-alert' : ''}>
-                      <td className="mono font-bold">Menit {m.minuteNumber}</td>
-                      <td className="mono text-dim">{m.windowRange}</td>
-                      <td className="mono font-bold">{m.blinksInMinute} kedipan</td>
+                      <td className="mono bold">Menit {m.minuteNumber}</td>
+                      <td className="mono muted">{m.windowRange}</td>
+                      <td className="mono bold">{m.blinksInMinute} kedipan</td>
                       <td className="mono">{m.blinksInMinute} BPM</td>
                       <td className="mono">{m.minStandardPct}%</td>
                       <td className="mono">{Number(m.avgEar || 0.28).toFixed(3)}</td>
                       <td>
-                        <span className={`hosp-status-chip ${m.severity}`}>
+                        <span className={`paper-chip ${m.severity}`}>
                           {m.alertTriggered ? `Alert: ${m.status}` : m.status}
                         </span>
                       </td>
-                      <td className="hosp-note-cell">{m.aiNote}</td>
+                      <td>{m.aiNote}</td>
                     </tr>
                   ))}
 
                   {(currentCycleSeconds > 0 || minuteLogs.length === 0) && (
                     <tr>
-                      <td className="mono text-dim">Menit {minuteLogs.length + 1}</td>
-                      <td className="mono text-dim">{currentCycleSeconds}s / 60s</td>
+                      <td className="mono muted">Menit {minuteLogs.length + 1}</td>
+                      <td className="mono muted">{currentCycleSeconds}s / 60s</td>
                       <td className="mono">{currentCycleBlinks} kedipan</td>
-                      <td className="mono text-dim">
+                      <td className="mono muted">
                         {currentCycleSeconds > 0
                           ? `${((currentCycleBlinks / currentCycleSeconds) * 60).toFixed(1)} BPM (est.)`
                           : '—'}
                       </td>
-                      <td className="mono text-dim">
+                      <td className="mono muted">
                         {Math.round((currentCycleBlinks / BLINK_STANDARD.MIN_NORMAL) * 100)}%
                       </td>
                       <td className="mono">{report.avgEar.toFixed(3)}</td>
                       <td>
-                        <span className="hosp-status-chip neutral">Berjalan</span>
+                        <span className="paper-chip neutral">Sementara</span>
                       </td>
-                      <td className="hosp-note-cell">
-                        Menunggu genap 60 detik aktif untuk evaluasi penuh menit ini.
+                      <td className="muted">
+                        Data sementara sebelum genap 60 detik aktif.
                       </td>
                     </tr>
                   )}
@@ -397,31 +424,30 @@ export default function ResultsPage({
             </div>
           </section>
 
-          {/* Bagian IV: Parameter Pemeriksaan */}
-          <section className="doc-section">
-            <div className="doc-section-heading">
-              <span className="doc-sec-num">IV.</span>
-              <h2>TABEL PARAMETER PEMERIKSAAN</h2>
+          {/* Bagian IV: Tabel Parameter Pemeriksaan */}
+          <section className="paper-section">
+            <div className="paper-sec-title">
+              <span>IV.</span> PARAMETER PEMERIKSAAN
             </div>
 
-            <div className="hosp-table-scroll">
-              <table className="hosp-table">
+            <div className="paper-table-wrap">
+              <table className="paper-table">
                 <thead>
                   <tr>
                     <th>Parameter</th>
                     <th>Hasil Terukur</th>
-                    <th>Nilai Rujukan Standar</th>
+                    <th>Nilai Rujukan</th>
                     <th>Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {report.diagnosticTable.slice(0, 4).map((row, idx) => (
+                  {report.diagnosticTable.map((row, idx) => (
                     <tr key={idx}>
-                      <td className="font-semibold">{row.parameter}</td>
-                      <td className="mono font-bold">{row.measured}</td>
-                      <td className="mono text-dim">{row.reference}</td>
+                      <td className="bold">{row.parameter}</td>
+                      <td className="mono bold">{row.measured}</td>
+                      <td className="mono muted">{row.reference}</td>
                       <td>
-                        <span className={`hosp-status-chip ${row.tone}`}>{row.status}</span>
+                        <span className={`paper-chip ${row.tone}`}>{row.status}</span>
                       </td>
                     </tr>
                   ))}
@@ -430,18 +456,18 @@ export default function ResultsPage({
             </div>
           </section>
 
-          {/* Bagian V: Penutup & Pengesahan Surat */}
-          <footer className="doc-letter-footer">
-            <div className="doc-disclaimer">
-              <strong>Catatan:</strong> Surat hasil pemeriksaan ini diterbitkan secara otomatis oleh{' '}
-              <em>Eye Blink Detection System</em> di <em>Jason Istioso&apos;s Clinic</em> untuk
-              pemantauan kesehatan kedipan mata dan dokumentasi riset.
+          {/* Bagian V: Penutup & Pengesahan */}
+          <footer className="paper-footer">
+            <div className="paper-disclaimer">
+              Surat hasil pemeriksaan dari <strong>Jason Istioso&apos;s Clinic</strong> melalui{' '}
+              <strong>Eye Blink Detection System</strong>. Gunakan sebagai pemantauan kesehatan mata
+              berkala.
             </div>
 
-            <div className="doc-signature-block">
+            <div className="paper-signature">
               <span>Jakarta, {dateOnly}</span>
-              <span className="doc-sign-role">Pemeriksa / Sistem</span>
-              <div className="doc-sign-script">Jason Istioso</div>
+              <span className="paper-sign-role">Pemeriksa</span>
+              <div className="paper-sign-script">Jason Istioso</div>
               <strong>Jason Istioso&apos;s Clinic</strong>
             </div>
           </footer>
@@ -449,7 +475,7 @@ export default function ResultsPage({
       </div>
 
       {/* ========================================================
-          DEDICATED CLEAN A4 PRINT / PDF LETTER
+          DEDICATED CLEAN A4 PRINT / PDF SHEET
           ======================================================== */}
       <div className="pdf-print-sheet" aria-hidden="true">
         <header className="pdf-letterhead">
@@ -461,13 +487,13 @@ export default function ResultsPage({
           </div>
           <div className="pdf-meta-right">
             <div>
-              <strong>No. Dokumen:</strong> {docCode}
+              <strong>No. Surat:</strong> {docCode}
             </div>
             <div>
               <strong>Tanggal:</strong> {dateOnly}
             </div>
             <div>
-              <strong>Durasi Uji:</strong> {formatDuration(activeSeconds)}
+              <strong>Durasi:</strong> {formatDuration(activeSeconds)}
             </div>
           </div>
         </header>
@@ -485,7 +511,7 @@ export default function ResultsPage({
                 <strong className="pdf-field-value">{report.evaluatedAt}</strong>
               </div>
               <div>
-                <span className="pdf-field-label">Standar Rujukan</span>
+                <span className="pdf-field-label">Standar Normal</span>
                 <strong className="pdf-field-value">
                   {BLINK_STANDARD.MIN_NORMAL}–{BLINK_STANDARD.MAX_NORMAL} kedipan/menit
                 </strong>
@@ -502,11 +528,11 @@ export default function ResultsPage({
           <h2 className="pdf-section-title">II. Hasil Pemeriksaan &amp; Kesimpulan</h2>
           <div className="pdf-kpi-row">
             <div className="pdf-kpi-box">
-              <span>Status Pemeriksaan</span>
+              <span>Status</span>
               <strong>{statusShortLabel}</strong>
             </div>
             <div className="pdf-kpi-box">
-              <span>Rasio Kedipan / Menit</span>
+              <span>Rasio / Menit</span>
               <strong>{report.validatedAvgBpm} BPM</strong>
             </div>
             <div className="pdf-kpi-box">
@@ -516,7 +542,7 @@ export default function ResultsPage({
               </strong>
             </div>
             <div className="pdf-kpi-box">
-              <span>Alert (&lt; 15/menit)</span>
+              <span>Alert (&lt; 15/mnt)</span>
               <strong>{report.alertMinutesCount} kali</strong>
             </div>
           </div>
@@ -541,7 +567,7 @@ export default function ResultsPage({
                 <th>Rasio / Menit</th>
                 <th>Avg EAR</th>
                 <th>Status</th>
-                <th>Catatan</th>
+                <th>Keterangan</th>
               </tr>
             </thead>
             <tbody>
@@ -552,8 +578,8 @@ export default function ResultsPage({
                   <td>{currentCycleBlinks} kedipan</td>
                   <td>{report.validatedAvgBpm} BPM</td>
                   <td>{report.avgEar.toFixed(3)}</td>
-                  <td>Berjalan</td>
-                  <td>Sesi belum mencapai 60 detik penuh.</td>
+                  <td>Sementara</td>
+                  <td>Data sementara sebelum genap 60 detik aktif.</td>
                 </tr>
               ) : (
                 minuteLogs.map((m) => (
@@ -575,7 +601,7 @@ export default function ResultsPage({
         </section>
 
         <section className="pdf-section">
-          <h2 className="pdf-section-title">IV. Tabel Parameter Pemeriksaan</h2>
+          <h2 className="pdf-section-title">IV. Parameter Pemeriksaan</h2>
           <table className="pdf-table">
             <thead>
               <tr>
@@ -586,7 +612,7 @@ export default function ResultsPage({
               </tr>
             </thead>
             <tbody>
-              {report.diagnosticTable.slice(0, 4).map((row, idx) => (
+              {report.diagnosticTable.map((row, idx) => (
                 <tr key={idx}>
                   <td>{row.parameter}</td>
                   <td>{row.measured}</td>
@@ -600,8 +626,8 @@ export default function ResultsPage({
 
         <footer className="pdf-footer">
           <div style={{ maxWidth: '62%' }}>
-            <strong>Catatan:</strong> Surat hasil pemeriksaan ini diterbitkan secara otomatis oleh{' '}
-            <em>Eye Blink Detection System</em> — <strong>Jason Istioso&apos;s Clinic</strong>.
+            Surat hasil pemeriksaan resmi dari <strong>Jason Istioso&apos;s Clinic</strong> melalui{' '}
+            <strong>Eye Blink Detection System</strong>.
           </div>
           <div className="pdf-sign-box">
             <span>Jakarta, {dateOnly}</span>

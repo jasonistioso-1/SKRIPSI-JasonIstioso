@@ -75,6 +75,7 @@ export default function App() {
   const [isSessionPaused, setIsSessionPaused] = useState(false);
   const [minuteLogs, setMinuteLogs] = useState([]);
   const [minuteAlert, setMinuteAlert] = useState(null);
+  const [pauseGateToast, setPauseGateToast] = useState(null);
   const [currentCycleSeconds, setCurrentCycleSeconds] = useState(0);
   const [currentCycleBlinks, setCurrentCycleBlinks] = useState(0);
 
@@ -191,13 +192,27 @@ export default function App() {
     setIsUsernameModalOpen(true);
   };
 
-  // Toggle Pause / Resume cleanly
+  // Toggle Pause / Resume cleanly & sync latest live stats
   const handleTogglePause = () => {
     setIsSessionPaused((prev) => {
       const next = !prev;
       lastTickRef.current = Date.now();
+      setStats(tracker.getStatistics());
+      if (next) {
+        setPauseGateToast(null);
+      }
       return next;
     });
+  };
+
+  // Enforce: Hasil page can only be opened when Pause is pressed
+  const handleNavigateView = (nextView) => {
+    if (nextView === 'results' && !isSessionPaused) {
+      setPauseGateToast('Tekan tombol Pause terlebih dahulu untuk melihat surat hasil.');
+      setTimeout(() => setPauseGateToast(null), 3500);
+      return;
+    }
+    setCurrentView(nextView);
   };
 
   // Calibration Procedure (3-Second Sampling)
@@ -443,7 +458,7 @@ export default function App() {
           onReset={handleReset}
           onExportCSV={handleExportCSV}
           currentView={currentView}
-          onViewChange={setCurrentView}
+          onViewChange={handleNavigateView}
           username={username}
           onEditUsername={handleOpenEditUsername}
           isSessionPaused={isSessionPaused}
@@ -480,6 +495,8 @@ export default function App() {
           currentCycleBlinks={currentCycleBlinks}
           threshold={threshold}
           baselineOpenEar={tracker.baselineOpenEar}
+          isSessionPaused={isSessionPaused}
+          onPauseAndUnlock={() => setIsSessionPaused(true)}
           onBackToStudio={() => setCurrentView('studio')}
           onReset={handleReset}
           onExportCSV={handleExportCSV}
@@ -588,6 +605,42 @@ export default function App() {
         </div>
       ) : (
         <main className="main-content">
+          {/* Pause Gate Prompt Toast */}
+          {pauseGateToast && (
+            <div className="pause-gate-toast">
+              <span>{pauseGateToast}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSessionPaused(true);
+                  setStats(tracker.getStatistics());
+                  setPauseGateToast(null);
+                  setCurrentView('results');
+                }}
+                className="pause-gate-action"
+              >
+                Pause &amp; Buka Hasil
+              </button>
+            </div>
+          )}
+
+          {/* Paused Ready Pill: Results Unlocked Live */}
+          {isSessionPaused && (
+            <div className="paused-ready-bar">
+              <span>
+                Sesi dijeda — hasil terbaru ({stats.totalBlinks} kedipan • {stats.bpm} BPM) siap dilihat.
+              </span>
+              <button
+                type="button"
+                onClick={() => handleNavigateView('results')}
+                className="paused-ready-cta"
+              >
+                <span>Buka Surat Hasil</span>
+                <ArrowRight size={13} />
+              </button>
+            </div>
+          )}
+
           {/* Calibration Toast Banner */}
           {calibrationToast && (
             <div className="studio-toast-banner">
@@ -613,10 +666,16 @@ export default function App() {
               <div className="minute-alert-actions">
                 <button
                   type="button"
-                  onClick={() => setCurrentView('results')}
+                  onClick={() => {
+                    if (!isSessionPaused) {
+                      setIsSessionPaused(true);
+                      setStats(tracker.getStatistics());
+                    }
+                    setCurrentView('results');
+                  }}
                   className="minute-alert-cta"
                 >
-                  <span>Lihat Hasil</span>
+                  <span>Pause &amp; Lihat Hasil</span>
                   <ArrowRight size={13} />
                 </button>
                 <button
@@ -687,7 +746,7 @@ export default function App() {
       {/* Modern 5-Item Mobile Bottom Navigation Bar (Active in Studio on mobile) */}
       {currentView === 'studio' && (
         <MobileBottomNav
-          onViewChange={setCurrentView}
+          onViewChange={handleNavigateView}
           isSessionPaused={isSessionPaused}
           onTogglePause={handleTogglePause}
           isCalibrating={isCalibrating}

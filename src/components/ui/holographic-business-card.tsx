@@ -521,14 +521,17 @@ function Front({
   websiteUrl?: string | null;
   websiteLabel?: string;
 }) {
+  const isDefaultHero = title === "product";
   const titleFontMm =
     title.length > 16
-      ? 6.6
+      ? 6.2
       : title.length > 12
-        ? 8.0
+        ? 7.4
         : title.length > 8
-          ? 9.8
-          : 12.5;
+          ? 8.8
+          : isDefaultHero
+            ? 12.5
+            : 9.8;
 
   return (
     <span className="bc-front">
@@ -543,18 +546,23 @@ function Front({
           className="bc-front-sky-inner"
           style={{ padding: `${mm(5)} ${mm(6.5)} ${mm(6.5)}` }}
         >
-          <span className="bc-front-greeting" style={{ gap: mm(1.6), fontSize: mm(3) }}>
+          <span className="bc-front-greeting" style={{ gap: mm(1.6), fontSize: mm(2.8) }}>
             <span aria-hidden>👋</span> {greeting}
           </span>
           <span
             className="bc-front-hero"
-            style={{ gap: mm(3), transform: `translateY(${mm(-3.5)})` }}
+            style={{
+              gap: mm(3),
+              transform: `translateY(${isDefaultHero ? mm(-3.5) : mm(0.8)})`,
+              marginTop: isDefaultHero ? 0 : mm(1.5),
+            }}
           >
             <span className="bc-front-hero-titles" style={{ minWidth: 0 }}>
               <span
                 className="bc-front-hero-main"
                 style={{
                   fontSize: mm(titleFontMm),
+                  lineHeight: 1.05,
                   maxWidth: "100%",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
@@ -565,7 +573,10 @@ function Front({
               </span>
               <span
                 className="bc-front-hero-script"
-                style={{ fontSize: mm(12.5 * 0.95 * 0.68), margin: "0.05em 0 0 0.15em" }}
+                style={{
+                  fontSize: mm(isDefaultHero ? 12.5 * 0.95 * 0.68 : 6.4),
+                  margin: isDefaultHero ? "0.05em 0 0 0.15em" : "0.18em 0 0 0.1em",
+                }}
               >
                 {subtitle}
               </span>

@@ -327,12 +327,16 @@ export default function MobileBottomNav({
                           <FileBarChart2 size={18} />
                         </div>
                         <div className="sheet-card-text">
-                          <span className="sheet-card-title">Lihat Hasil Analisis (Next Page)</span>
-                          <span className="sheet-card-desc">Buka kartu nama pasien, tabel per menit &amp; diagnosa AI</span>
+                          <span className="sheet-card-title">Surat Hasil Pemeriksaan</span>
+                          <span className="sheet-card-desc">
+                            {isSessionPaused
+                              ? 'Sesi dijeda — buka surat hasil & simpan PDF'
+                              : 'Tekan Pause terlebih dahulu untuk membuka hasil'}
+                          </span>
                         </div>
                       </div>
-                      <div className="sheet-action-pill emerald">
-                        <span>Buka</span>
+                      <div className={`sheet-action-pill ${isSessionPaused ? 'emerald' : 'amber'}`}>
+                        <span>{isSessionPaused ? 'Buka' : 'Terkunci'}</span>
                         <ChevronRight size={13} />
                       </div>
                     </button>

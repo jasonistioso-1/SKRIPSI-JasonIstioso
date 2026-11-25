@@ -17,6 +17,7 @@ import {
   Scan,
   FlipHorizontal,
   PictureInPicture2,
+  Lock,
 } from 'lucide-react';
 import OcularVisionLogo from './ui/OcularVisionLogo';
 
@@ -98,9 +99,20 @@ export default function Navbar({
         <button
           type="button"
           onClick={() => onViewChange?.('results')}
-          className={`view-tab-btn ${currentView === 'results' ? 'active' : ''} ${hasMinuteAlert ? 'has-alert' : ''}`}
+          className={`view-tab-btn ${currentView === 'results' ? 'active' : ''} ${
+            !isSessionPaused && currentView === 'studio' ? 'locked' : 'unlocked'
+          } ${hasMinuteAlert ? 'has-alert' : ''}`}
+          title={
+            !isSessionPaused && currentView === 'studio'
+              ? 'Tekan Pause terlebih dahulu untuk melihat hasil'
+              : 'Buka Surat Hasil Pemeriksaan'
+          }
         >
-          <FileBarChart2 size={13} />
+          {!isSessionPaused && currentView === 'studio' ? (
+            <Lock size={12} />
+          ) : (
+            <FileBarChart2 size={13} />
+          )}
           <span>Hasil</span>
           {(completedMinutesCount > 0 || hasMinuteAlert) && (
             <span className={`nav-tab-badge ${hasMinuteAlert ? 'alert' : ''}`}>

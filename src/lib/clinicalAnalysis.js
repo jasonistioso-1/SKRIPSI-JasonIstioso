@@ -1,9 +1,6 @@
 /**
- * Clinical Ocular Blink Rate Standards & Hospital AI Diagnostic Engine
- * Standard Reference:
- * - Normal Spontaneous Blink Rate (Rest / Standard Clinical): 15–20 blinks/minute
- * - Hypo-blinking / Digital Eye Strain / Dry Eye Risk: < 15 blinks/minute (< 10 critical)
- * - Elevated / Fatigue or Irritation Response: > 20 blinks/minute (> 25 high)
+ * Standar Frekuensi Kedipan Mata & Evaluasi Hasil Pemeriksaan
+ * Referensi Standar Umum: 15–20 kedipan per menit
  */
 
 export const BLINK_STANDARD = {
@@ -18,18 +15,17 @@ export const BLINK_STANDARD = {
 };
 
 /**
- * Evaluate a single 1-minute blink count against standard clinical thresholds.
+ * Evaluasi jumlah kedipan dalam 1 menit terhadap standar umum (15–20 kedipan/menit).
  */
 export function evaluateMinuteBlinkRate(blinksInMinute, avgEar = 0.28, minEar = 0.28, avgDurationMs = 0) {
   const count = Number(blinksInMinute) || 0;
-  // Ratio compared to minimum clinical standard (15 bpm) and target midpoint (17.5 bpm)
   const minStandardPct = Math.min(200, Math.round((count / BLINK_STANDARD.MIN_NORMAL) * 100));
   const idealRatio = Number((count / BLINK_STANDARD.MIN_NORMAL).toFixed(2));
 
   if (count < BLINK_STANDARD.CRITICAL_LOW) {
     return {
       status: 'KRITIS',
-      label: 'Defisit Berat (< 10/mnt)',
+      label: 'Sangat Kurang (< 10/mnt)',
       severity: 'critical',
       alertTriggered: true,
       minStandardPct,
@@ -37,14 +33,14 @@ export function evaluateMinuteBlinkRate(blinksInMinute, avgEar = 0.28, minEar = 
       avgEar,
       minEar,
       avgDurationMs,
-      aiNote: `Terdeteksi hanya ${count} kedipan pada menit ini (jauh di bawah standar 15–20/menit). Risiko tinggi mata kering (Dry Eye) & ketegangan visual.`,
+      aiNote: `Hanya ${count} kedipan pada menit ini (standar 15–20/menit). Segera istirahatkan mata.`,
     };
   }
 
   if (count < BLINK_STANDARD.MIN_NORMAL) {
     return {
       status: 'PERINGATAN',
-      label: 'Di Bawah Standar (< 15/mnt)',
+      label: 'Kurang (< 15/mnt)',
       severity: 'warning',
       alertTriggered: true,
       minStandardPct,
@@ -52,14 +48,14 @@ export function evaluateMinuteBlinkRate(blinksInMinute, avgEar = 0.28, minEar = 
       avgEar,
       minEar,
       avgDurationMs,
-      aiNote: `Frekuensi ${count} kedipan/menit masih kurang dari batas minimal standar (${BLINK_STANDARD.MIN_NORMAL} kedipan/menit). Disarankan berkedip lebih sadar.`,
+      aiNote: `${count} kedipan/menit masih di bawah batas normal minimal (${BLINK_STANDARD.MIN_NORMAL}/menit).`,
     };
   }
 
   if (count <= BLINK_STANDARD.MAX_NORMAL) {
     return {
       status: 'NORMAL',
-      label: 'Optimal (Standar 15–20/mnt)',
+      label: 'Normal (15–20/mnt)',
       severity: 'normal',
       alertTriggered: false,
       minStandardPct,
@@ -67,14 +63,14 @@ export function evaluateMinuteBlinkRate(blinksInMinute, avgEar = 0.28, minEar = 
       avgEar,
       minEar,
       avgDurationMs,
-      aiNote: `Frekuensi kedipan ${count}/menit berada pada rentang fisiologis ideal (15–20 kedipan/menit). Pelumasan lapisan air mata terjaga baik.`,
+      aiNote: `${count} kedipan/menit sesuai rentang normal (15–20/menit).`,
     };
   }
 
   if (count <= BLINK_STANDARD.ELEVATED_WARN) {
     return {
       status: 'WASPADA',
-      label: 'Sedikit Tinggi (21–25/mnt)',
+      label: 'Agak Tinggi (21–25/mnt)',
       severity: 'elevated',
       alertTriggered: false,
       minStandardPct,
@@ -82,13 +78,13 @@ export function evaluateMinuteBlinkRate(blinksInMinute, avgEar = 0.28, minEar = 
       avgEar,
       minEar,
       avgDurationMs,
-      aiNote: `Frekuensi ${count} kedipan/menit sedikit di atas rentang istirahat normal. Dapat menandakan kelelahan mata ringan atau adaptasi pencahayaan.`,
+      aiNote: `${count} kedipan/menit sedikit di atas rentang normal (15–20/menit).`,
     };
   }
 
   return {
     status: 'TINGGI',
-    label: 'Hiperaktif (> 25/mnt)',
+    label: 'Tinggi (> 25/mnt)',
     severity: 'high',
     alertTriggered: false,
     minStandardPct,
@@ -96,22 +92,19 @@ export function evaluateMinuteBlinkRate(blinksInMinute, avgEar = 0.28, minEar = 
     avgEar,
     minEar,
     avgDurationMs,
-    aiNote: `Frekuensi kedipan tinggi (${count}/menit). Kemungkinan respons kompensasi terhadap iritasi permukaan okular, silau layar, atau kelelahan.`,
+    aiNote: `Frekuensi tinggi (${count} kedipan/menit). Mata kemungkinan sedang lelah atau silau.`,
   };
 }
 
-/**
- * Generate a deterministic Medical Record Number (MRN) for display.
- */
 export function buildPatientMrn(username = '') {
   const base = (username || 'GUEST').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6) || 'GUEST';
   const now = new Date();
   const yymm = `${String(now.getFullYear()).slice(-2)}${String(now.getMonth() + 1).padStart(2, '0')}`;
-  return `MRN-OCV-${yymm}-${base}`;
+  return `JIC-${yymm}-${base}`;
 }
 
 /**
- * Build full Hospital AI Clinical Assessment report for the Results Page.
+ * Susun laporan pemeriksaan untuk Surat Hasil Pemeriksaan Dokter.
  */
 export function generateHospitalClinicalReport({
   username = '',
@@ -121,12 +114,11 @@ export function generateHospitalClinicalReport({
   threshold = 0.22,
   baselineOpenEar = 0.28,
 }) {
-  const displayName = username?.trim() || 'Pasien / Operator';
+  const displayName = username?.trim() || 'Peserta';
   const activeSeconds = Math.max(0, stats.elapsedSeconds || 0);
   const totalBlinks = stats.totalBlinks || 0;
   const completedMinutes = minuteLogs.length;
 
-  // Prefer validated average of completed 1-minute intervals when available, else live extrapolated BPM
   const validatedAvgBpm = completedMinutes > 0
     ? Number((minuteLogs.reduce((sum, m) => sum + m.blinksInMinute, 0) / completedMinutes).toFixed(1))
     : (activeSeconds > 0 ? Number(((totalBlinks / activeSeconds) * 60).toFixed(1)) : 0);
@@ -144,96 +136,73 @@ export function generateHospitalClinicalReport({
     ? Math.round((normalMinutesCount / completedMinutes) * 100)
     : (validatedAvgBpm >= BLINK_STANDARD.MIN_NORMAL && validatedAvgBpm <= BLINK_STANDARD.MAX_NORMAL ? 100 : 0);
 
-  // Clinical Health Score (0-100)
-  let healthScore = 88;
-  if (activeSeconds < 5 && totalBlinks === 0) {
-    healthScore = 0;
-  } else {
-    const distFromIdeal =
-      validatedAvgBpm < BLINK_STANDARD.MIN_NORMAL
-        ? (BLINK_STANDARD.MIN_NORMAL - validatedAvgBpm) * 4.2
-        : validatedAvgBpm > BLINK_STANDARD.MAX_NORMAL
-          ? (validatedAvgBpm - BLINK_STANDARD.MAX_NORMAL) * 2.5
-          : Math.abs(validatedAvgBpm - BLINK_STANDARD.TARGET_IDEAL) * 1.2;
-    const alertPenalty = alertMinutesCount * 6;
-    healthScore = Math.max(18, Math.min(99, Math.round(98 - distFromIdeal - alertPenalty)));
-  }
-
-  // Primary clinical classification
-  let diagnosisTitle = 'Belum Ada Data Sesi';
+  let diagnosisTitle = 'Menunggu Data Pengukuran';
   let diagnosisBadge = 'MENUNGGU DATA';
   let severity = 'neutral';
-  let cvsRisk = 'Belum Dinilai';
-  let summaryText = 'Mulai sesi kamera atau video di Detection Studio selama minimal 1 menit untuk mendapatkan evaluasi klinis tervalidasi.';
+  let summaryText = 'Lakukan pengukuran pada Detection Studio lalu tekan Pause untuk melihat hasil pemeriksaan lengkap.';
   let recommendations = [
-    'Lakukan pemantauan aktif minimal 1 menit (60 detik) pada Detection Studio agar sistem dapat mengevaluasi rasio kedipan per menit.',
-    'Gunakan fitur Kalibrasi (3s) sebelum memulai pengukuran untuk menyesuaikan ambang batas EAR dengan anatomi mata Anda.',
+    'Lakukan pemantauan minimal 1 menit penuh agar hasil per menit tercatat.',
+    'Gunakan Kalibrasi (3s) sebelum mulai agar sensitivitas sesuai kondisi mata.',
   ];
 
-  if (activeSeconds >= 5 || totalBlinks > 0) {
+  if (activeSeconds >= 3 || totalBlinks > 0) {
     if (validatedAvgBpm < BLINK_STANDARD.CRITICAL_LOW) {
-      diagnosisTitle = 'Hypo-Blinking Berat (Risiko Tinggi Dry Eye / CVS)';
-      diagnosisBadge = 'PERLU TINDAKAN SEGERA';
+      diagnosisTitle = 'Frekuensi Kedipan Sangat Rendah';
+      diagnosisBadge = 'KURANG KEDIPAN BERAT';
       severity = 'critical';
-      cvsRisk = 'Tinggi (High Risk)';
-      summaryText = `Evaluasi AI untuk ${displayName} menunjukkan rata-rata kedipan ${validatedAvgBpm} kedipan/menit, jauh di bawah standar fisiologis normal (15–20 kedipan/menit). Kondisi ini sangat berkaitan dengan penguapan film air mata berlebih saat menatap layar.`;
+      summaryText = `Rata-rata kedipan ${displayName} tercatat ${validatedAvgBpm} kedipan/menit, jauh di bawah standar normal (15–20 kedipan/menit). Kondisi ini mudah membuat mata kering dan cepat lelah.`;
       recommendations = [
-        'Terapkan aturan 20-20-20 segera: setiap 20 menit melihat layar, alihkan pandangan ke objek berjarak 20 kaki (±6 meter) selama 20 detik.',
-        'Lakukan latihan kedipan sadar penuh (complete blink) 10 kali setiap 15 menit untuk mengembalikan distribusi lapisan lipid air mata.',
-        'Pertimbangkan penggunaan tetes air mata artifisial (preservative-free) dan turunkan posisi layar 10–15° di bawah garis pandang mata.',
+        'Istirahatkan mata dengan aturan 20-20-20: setiap 20 menit melihat layar, lihat objek berjarak 6 meter selama 20 detik.',
+        'Biasakan berkedip penuh secara sadar agar permukaan mata tetap lembap.',
+        'Atur pencahayaan ruangan serta posisi layar sedikit di bawah garis pandang mata.',
       ];
     } else if (validatedAvgBpm < BLINK_STANDARD.MIN_NORMAL) {
-      diagnosisTitle = 'Frekuensi Kedipan Di Bawah Standar (Mild Hypo-Blinking)';
-      diagnosisBadge = 'PERHATIAN • ALERT AKTIF';
+      diagnosisTitle = 'Frekuensi Kedipan Di Bawah Standar Normal';
+      diagnosisBadge = 'DI BAWAH STANDAR';
       severity = 'warning';
-      cvsRisk = 'Sedang (Moderate Risk)';
-      summaryText = `Rata-rata kedipan ${displayName} tercatat ${validatedAvgBpm} kedipan/menit (di bawah batas minimal standar umum 15 kedipan/menit). Terjadi ${alertMinutesCount} kali peringatan pada evaluasi siklus 1 menit.`;
+      summaryText = `Rata-rata kedipan ${displayName} sebesar ${validatedAvgBpm} kedipan/menit masih kurang dari batas minimal standar (15 kedipan/menit), dengan ${alertMinutesCount} kali peringatan pada evaluasi 1 menit.`;
       recommendations = [
-        'Tingkatkan kesadaran berkedip saat membaca atau fokus pada layar digital agar mencapai target 15–20 kedipan/menit.',
-        'Sesuaikan tingkat kecerahan monitor dengan cahaya ruangan dan hindari aliran angin AC langsung ke arah wajah.',
-        'Ambil jeda mikro (micro-break) selama 20–30 detik setiap selesai satu siklus pemantauan 1 menit yang memicu peringatan.',
+        'Tingkatkan frekuensi berkedip saat fokus membaca atau menatap monitor.',
+        'Ambil jeda 20–30 detik setiap kali muncul peringatan 1 menit.',
+        'Hindari hembusan AC langsung ke wajah agar mata tidak cepat kering.',
       ];
     } else if (validatedAvgBpm <= BLINK_STANDARD.MAX_NORMAL) {
-      diagnosisTitle = 'Fungsi Kedipan Okular Normal & Stabil';
-      diagnosisBadge = 'NORMAL • SESUAI STANDAR';
+      diagnosisTitle = 'Frekuensi Kedipan Normal';
+      diagnosisBadge = 'NORMAL';
       severity = 'normal';
-      cvsRisk = 'Rendah (Low Risk)';
-      summaryText = `Hasil pemantauan ${displayName} menunjukkan laju kedipan ${validatedAvgBpm} kedipan/menit yang berada tepat dalam rentang standar klinis umum (15–20 kedipan/menit). Rasio keterbukaan mata (EAR rata-rata ${avgEar}) terpantau stabil.`;
+      summaryText = `Rata-rata kedipan ${displayName} tercatat ${validatedAvgBpm} kedipan/menit, berada tepat dalam standar normal (15–20 kedipan/menit) dengan nilai EAR rata-rata ${avgEar}.`;
       recommendations = [
-        'Pertahankan ritme kedipan alami Anda serta pencahayaan kerja yang ergonomis untuk mencegah kelelahan mata digital.',
-        'Tetap lakukan istirahat berkala setiap 20–30 menit penggunaan layar intensif agar kesehatan permukaan kornea tetap optimal.',
-        'Simpan atau ekspor log CSV sebagai dokumentasi telemetri penelitian maupun catatan kesehatan mata berkala.',
+        'Pertahankan ritme kedipan alami dan pencahayaan layar yang nyaman.',
+        'Tetap beri waktu istirahat berkala saat bekerja di depan layar dalam waktu lama.',
       ];
     } else if (validatedAvgBpm <= BLINK_STANDARD.ELEVATED_WARN) {
-      diagnosisTitle = 'Frekuensi Kedipan Sedikit Meningkat';
-      diagnosisBadge = 'PANTAU KELELAHAN';
+      diagnosisTitle = 'Frekuensi Kedipan Sedikit Tinggi';
+      diagnosisBadge = 'AGAK TINGGI';
       severity = 'elevated';
-      cvsRisk = 'Rendah–Sedang';
-      summaryText = `Laju kedipan ${displayName} berada pada ${validatedAvgBpm} kedipan/menit, sedikit di atas rentang istirahat standar (15–20 kedipan/menit). Hal ini umum terjadi saat adaptasi silau layar atau kelelahan visual ringan.`;
+      summaryText = `Rata-rata kedipan ${displayName} berada pada ${validatedAvgBpm} kedipan/menit, sedikit di atas standar istirahat normal (15–20 kedipan/menit).`;
       recommendations = [
-        'Periksa apakah terdapat pantulan cahaya berlebih (glare) pada layar atau kacamata Anda.',
-        'Kurangi ketegangan fokus dengan mengistirahatkan mata selama 1–2 menit bila kelopak mata terasa berat.',
+        'Periksa apakah layar terlalu terang atau terdapat pantulan cahaya yang menyilaukan.',
+        'Istirahatkan mata sejenak apabila kelopak mata mulai terasa berat.',
       ];
     } else {
-      diagnosisTitle = 'Hiper-Frekuensi Kedipan (Indikasi Iritasi / Kelelahan)';
-      diagnosisBadge = 'EVALUASI KELELAHAN';
+      diagnosisTitle = 'Frekuensi Kedipan Tinggi';
+      diagnosisBadge = 'FREKUENSI TINGGI';
       severity = 'high';
-      cvsRisk = 'Sedang (Kelelahan Mata)';
-      summaryText = `Terdeteksi ${validatedAvgBpm} kedipan/menit pada sesi ${displayName}, melebihi 25 kedipan/menit. Peningkatan refleks berkedip sering menjadi mekanisme kompensasi mata terhadap kekeringan awal, silau, atau iritasi.`;
+      summaryText = `Tercatat ${validatedAvgBpm} kedipan/menit pada sesi ${displayName} (melebihi 25 kedipan/menit). Peningkatan kedipan umumnya terjadi saat mata lelah, silau, atau mengalami iritasi ringan.`;
       recommendations = [
-        'Hentikan paparan layar sejenak, pejamkan mata secara rileks selama 30 detik, dan periksa kenyamanan lensa/kacamata.',
-        'Jika kedipan berlebih disertai rasa perih atau berair berkelanjutan, disarankan konsultasi ke dokter spesialis mata.',
+        'Pejamkan mata secara rileks selama 30 detik dan kurangi kecerahan layar.',
+        'Jika mata sering terasa perih atau berair, periksakan langsung ke dokter mata.',
       ];
     }
   }
 
   const diagnosticTable = [
     {
-      parameter: 'Laju Kedipan Rata-rata (Blink Rate)',
+      parameter: 'Laju Kedipan Rata-rata',
       measured: `${validatedAvgBpm} kedipan/mnt`,
       reference: `${BLINK_STANDARD.MIN_NORMAL}–${BLINK_STANDARD.MAX_NORMAL} kedipan/mnt`,
       status:
-        activeSeconds < 5 && totalBlinks === 0
+        activeSeconds < 3 && totalBlinks === 0
           ? 'Menunggu'
           : validatedAvgBpm < BLINK_STANDARD.MIN_NORMAL
             ? 'Di Bawah Standar'
@@ -241,7 +210,7 @@ export function generateHospitalClinicalReport({
               ? 'Normal'
               : 'Di Atas Standar',
       tone:
-        activeSeconds < 5 && totalBlinks === 0
+        activeSeconds < 3 && totalBlinks === 0
           ? 'neutral'
           : validatedAvgBpm < BLINK_STANDARD.CRITICAL_LOW
             ? 'critical'
@@ -252,18 +221,18 @@ export function generateHospitalClinicalReport({
                 : 'elevated',
     },
     {
-      parameter: 'Kepatuhan Siklus Evaluasi 1 Menit',
+      parameter: 'Kepatuhan Siklus 1 Menit',
       measured:
         completedMinutes > 0
           ? `${normalMinutesCount} / ${completedMinutes} menit (${complianceRate}%)`
           : 'Belum genap 1 menit',
-      reference: '≥ 80% siklus normal (≥ 15/mnt)',
+      reference: 'Semua siklus ≥ 15 kedipan/mnt',
       status:
         completedMinutes === 0
-          ? 'Dalam Proses'
+          ? 'Berjalan'
           : alertMinutesCount === 0
             ? 'Memenuhi Standar'
-            : `${alertMinutesCount} Menit Alert`,
+            : `${alertMinutesCount} Menit Kurang`,
       tone:
         completedMinutes === 0
           ? 'neutral'
@@ -272,10 +241,10 @@ export function generateHospitalClinicalReport({
             : 'warning',
     },
     {
-      parameter: 'Eye Aspect Ratio (EAR) Rata-rata',
+      parameter: 'Rata-rata Eye Aspect Ratio (EAR)',
       measured: avgEar.toFixed(3),
-      reference: `> ${threshold.toFixed(3)} (Baseline: ${Number(baselineOpenEar).toFixed(3)})`,
-      status: avgEar >= threshold ? 'Keterbukaan Stabil' : 'Rendah / Sering Menutup',
+      reference: `> ${threshold.toFixed(3)}`,
+      status: avgEar >= threshold ? 'Stabil' : 'Rendah',
       tone: avgEar >= threshold ? 'normal' : 'warning',
     },
     {
@@ -284,23 +253,16 @@ export function generateHospitalClinicalReport({
       reference: `${BLINK_STANDARD.NORMAL_BLINK_DURATION_MIN_MS}–${BLINK_STANDARD.NORMAL_BLINK_DURATION_MAX_MS} ms`,
       status:
         avgBlinkDurationMs === 0
-          ? 'Belum Ada Kedipan'
+          ? 'Belum Ada'
           : avgBlinkDurationMs <= BLINK_STANDARD.NORMAL_BLINK_DURATION_MAX_MS
-            ? 'Fisiologis Normal'
-            : 'Kedipan Lambat (Fatigue)',
+            ? 'Normal'
+            : 'Lambat',
       tone:
         avgBlinkDurationMs === 0
           ? 'neutral'
           : avgBlinkDurationMs <= BLINK_STANDARD.NORMAL_BLINK_DURATION_MAX_MS
             ? 'normal'
             : 'warning',
-    },
-    {
-      parameter: 'Indeks Risiko Computer Vision Syndrome',
-      measured: cvsRisk,
-      reference: 'Risiko Rendah (Low Risk)',
-      status: severity === 'normal' ? 'Aman' : severity === 'neutral' ? 'Menunggu' : 'Perlu Pengawasan',
-      tone: severity,
     },
   ];
 
@@ -311,7 +273,6 @@ export function generateHospitalClinicalReport({
       dateStyle: 'medium',
       timeStyle: 'short',
     }),
-    healthScore,
     validatedAvgBpm,
     avgEar,
     avgBlinkDurationMs,
@@ -321,10 +282,8 @@ export function generateHospitalClinicalReport({
     diagnosisTitle,
     diagnosisBadge,
     severity,
-    cvsRisk,
     summaryText,
     recommendations,
     diagnosticTable,
   };
 }
-
