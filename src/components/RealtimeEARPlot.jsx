@@ -182,24 +182,10 @@ export default function RealtimeEARPlot({
       <div className="feed-header">
         <div className="feed-title-group">
           <Activity size={16} />
-          <span className="feed-title">Real-Time EAR Signal Oscilloscope</span>
+          <span className="feed-title">Grafik EAR Real-Time</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div
-            className="tech-badge"
-            style={{
-              background: isBlinking ? 'rgba(244, 63, 94, 0.2)' : 'rgba(56, 189, 248, 0.12)',
-              borderColor: isBlinking ? 'rgba(244, 63, 94, 0.45)' : 'rgba(56, 189, 248, 0.3)',
-              color: isBlinking ? '#fb7185' : '#38bdf8',
-              fontWeight: 700,
-              fontFamily: 'var(--font-mono)',
-            }}
-          >
-            <span>{totalBlinks} Kedipan</span>
-          </div>
-          <div className="tech-badge" style={{ color: isBlinking ? '#fb7185' : 'var(--text-secondary)' }}>
-            <span>{isBlinking ? 'Drop Detected' : 'Normal Signal'}</span>
-          </div>
+        <div className={`gauge-status-pill ${isSessionPaused ? 'paused' : isBlinking ? 'blink' : 'open'}`}>
+          {isSessionPaused ? 'PAUSED' : isBlinking ? 'KEDIPAN' : 'NORMAL'}
         </div>
       </div>
 
@@ -212,26 +198,26 @@ export default function RealtimeEARPlot({
         />
       </div>
 
-      {/* 4 Core Scientific Telemetry Gauges */}
-      <div className="plot-gauges plot-gauges-4">
-        {/* Metric 1: Blink Counter & Frequency */}
+      {/* 3 Clean Essential Gauges */}
+      <div className="plot-gauges">
+        {/* 1. Total Blinks & BPM */}
         <div className={`gauge-box ${isBlinking ? 'blink-active' : ''}`}>
           <div className="gauge-header-row">
-            <span className="gauge-label">Total Kedipan</span>
-            <span className="gauge-tag-bpm">{bpm} BPM</span>
+            <span className="gauge-label">Kedipan</span>
+            <span className="gauge-tag-bpm">{bpm} / mnt</span>
           </div>
           <div className="gauge-value-row">
             <span className={`gauge-num ${isBlinking ? 'rose' : ''}`}>
               {totalBlinks}
             </span>
-            <span className="gauge-unit-text">blinks</span>
+            <span className="gauge-unit-text">total</span>
           </div>
         </div>
 
-        {/* Metric 2: 1-Minute Cycle Progress */}
+        {/* 2. 1-Minute Cycle & Target */}
         <div className={`gauge-box ${currentCycleBlinks >= 15 ? 'cycle-ok' : ''}`}>
           <div className="gauge-header-row">
-            <span className="gauge-label">Siklus Menit #{currentMinuteNumber}</span>
+            <span className="gauge-label">Menit #{currentMinuteNumber}</span>
             <span className="gauge-tag-bpm" style={{
               background: currentCycleBlinks >= 15 ? 'rgba(16, 185, 129, 0.14)' : 'rgba(245, 158, 11, 0.14)',
               color: currentCycleBlinks >= 15 ? '#34d399' : '#fbbf24',
@@ -244,37 +230,21 @@ export default function RealtimeEARPlot({
             <span className="gauge-num">
               {String(currentCycleSeconds).padStart(2, '0')}s
             </span>
-            <span className="gauge-unit-text">/ 60s</span>
+            <span className="gauge-unit-text">/ 60s ({timeFormatted})</span>
           </div>
         </div>
 
-        {/* Metric 3: Live EAR & Status */}
+        {/* 3. Live EAR */}
         <div className={`gauge-box ${isBlinking ? 'blink-active' : ''}`}>
           <div className="gauge-header-row">
             <span className="gauge-label">Rasio EAR</span>
-            <span className={`gauge-status-pill ${isSessionPaused ? 'paused' : isBlinking ? 'blink' : 'open'}`}>
-              {isSessionPaused ? 'PAUSED' : isBlinking ? 'BLINK' : 'OPEN'}
-            </span>
+            <span className="gauge-tag-dim">THR {threshold.toFixed(2)}</span>
           </div>
           <div className="gauge-value-row">
             <span className={`gauge-num ${isBlinking ? 'rose' : ''}`}>
               {currentEar.toFixed(3)}
             </span>
             <span className="gauge-unit-text">live</span>
-          </div>
-        </div>
-
-        {/* Metric 4: Total Session Duration */}
-        <div className="gauge-box">
-          <div className="gauge-header-row">
-            <span className="gauge-label">Durasi Sesi</span>
-            <span className="gauge-tag-dim">MM:SS</span>
-          </div>
-          <div className="gauge-value-row">
-            <span className="gauge-num">
-              {timeFormatted}
-            </span>
-            <span className="gauge-unit-text">aktif</span>
           </div>
         </div>
       </div>

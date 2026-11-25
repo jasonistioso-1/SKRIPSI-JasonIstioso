@@ -450,6 +450,14 @@ export default function App() {
           onTogglePause={handleTogglePause}
           completedMinutesCount={minuteLogs.length}
           hasMinuteAlert={Boolean(minuteAlert)}
+          showLandmarks={showLandmarks}
+          onToggleLandmarks={() => setShowLandmarks((p) => !p)}
+          showHaarRoi={showHaarRoi}
+          onToggleHaarRoi={() => setShowHaarRoi((p) => !p)}
+          mirrorCamera={mirrorCamera}
+          onToggleMirror={() => setMirrorCamera((p) => !p)}
+          inputMode={inputMode}
+          onTogglePip={() => togglePipRef.current?.()}
         />
       )}
 
@@ -598,7 +606,7 @@ export default function App() {
                   <AlertTriangle size={18} />
                 </div>
                 <div>
-                  <strong>Alert Standar Kedipan 1 Menit</strong>
+                  <strong>Peringatan Kedipan (Menit ke-{minuteAlert.minuteNumber})</strong>
                   <p>{minuteAlert.message}</p>
                 </div>
               </div>
@@ -608,91 +616,20 @@ export default function App() {
                   onClick={() => setCurrentView('results')}
                   className="minute-alert-cta"
                 >
-                  <span>Lihat Tabel Analisis</span>
+                  <span>Lihat Hasil</span>
                   <ArrowRight size={13} />
                 </button>
                 <button
                   type="button"
                   onClick={() => setMinuteAlert(null)}
                   className="minute-alert-close"
-                  title="Tutup peringatan"
+                  title="Tutup"
                 >
                   ✕
                 </button>
               </div>
             </div>
           )}
-
-          {/* Clean Live 1-Minute Clinical Monitor Bar */}
-          <div className="studio-minute-strip">
-            <div className="strip-item">
-              <div className="strip-icon cyan">
-                <Clock size={15} />
-              </div>
-              <div className="strip-text">
-                <div className="strip-top">
-                  <span>Evaluasi Menit #{currentMinuteNumber}</span>
-                  <strong className="mono">{String(currentCycleSeconds).padStart(2, '0')}s / 60s</strong>
-                </div>
-                <div className="strip-progress-track">
-                  <div className="strip-progress-fill cyan" style={{ width: `${liveCyclePct}%` }} />
-                </div>
-              </div>
-            </div>
-
-            <div className="strip-divider" />
-
-            <div className="strip-item">
-              <div className={`strip-icon ${currentCycleBlinks >= BLINK_STANDARD.MIN_NORMAL ? 'emerald' : 'amber'}`}>
-                {currentCycleBlinks >= BLINK_STANDARD.MIN_NORMAL ? (
-                  <CheckCircle2 size={15} />
-                ) : (
-                  <Activity size={15} />
-                )}
-              </div>
-              <div className="strip-text">
-                <div className="strip-top">
-                  <span>Target Menit Ini (Standar: 15–20)</span>
-                  <strong className="mono">{currentCycleBlinks} / 15 kedipan</strong>
-                </div>
-                <div className="strip-progress-track">
-                  <div
-                    className={`strip-progress-fill ${currentCycleBlinks >= BLINK_STANDARD.MIN_NORMAL ? 'emerald' : 'amber'}`}
-                    style={{ width: `${targetRatioPct}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="strip-divider" />
-
-            <div className="strip-status-group">
-              <div className={`strip-state-pill ${isSessionPaused ? 'paused' : 'active'}`}>
-                <span className={`live-dot ${isSessionPaused ? '' : 'ready'}`} />
-                <span>{isSessionPaused ? 'DIJEDA (PAUSED)' : `AKTIF • ${stats.bpm} BPM`}</span>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleTogglePause}
-                className="strip-mini-btn"
-                title={isSessionPaused ? 'Lanjutkan Sesi' : 'Jeda Sesi'}
-              >
-                {isSessionPaused ? <Play size={13} /> : <Pause size={13} />}
-                <span>{isSessionPaused ? 'Lanjut' : 'Pause'}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setCurrentView('results')}
-                className="strip-results-btn"
-              >
-                <FileBarChart2 size={13} />
-                <span>Hasil ({minuteLogs.length} mnt)</span>
-                <ArrowRight size={13} />
-              </button>
-            </div>
-          </div>
 
           {/* Dual Screen Display: Video on Left, Oscilloscope on Right */}
           <div className="dashboard-grid">

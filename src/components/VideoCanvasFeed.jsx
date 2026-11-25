@@ -691,100 +691,53 @@ export default function VideoCanvasFeed({
           </div>
         )}
 
-        {/* Floating Studio Bottom Toolbar (Inside video-stage so camera goes all the way to bottom!) */}
+        {/* Clean Minimal Bottom Video Corner Controls */}
         <div className="studio-hud-bottom">
           <div className="btn-group">
-            <button onClick={togglePlay} className="btn-primary" style={{ padding: '4px 10px' }}>
-              {propIsPaused || (inputMode !== 'webcam' && !isPlaying) ? <Play size={13} /> : <Pause size={13} />}
-              <span>{propIsPaused || (inputMode !== 'webcam' && !isPlaying) ? 'Lanjutkan' : 'Pause'}</span>
-            </button>
-            {inputMode !== 'webcam' && (
-              <button onClick={restartVideo} className="btn-secondary" style={{ padding: '4px 8px' }} title="Restart Video">
-                <RotateCcw size={12} />
-                <span>Restart</span>
-              </button>
+            {!isSimpleView && inputMode === 'sample' && (
+              <>
+                <select
+                  value={sampleVideo}
+                  onChange={(e) => {
+                    const newSrc = e.target.value;
+                    setSampleVideo(newSrc);
+                    tracker.reset();
+                    latestDataRef.current = null;
+                  }}
+                  className="sample-select"
+                  style={{ padding: '4px 8px', fontSize: '0.73rem' }}
+                >
+                  <option value="/videos/blinking_0.mp4">Subject 0</option>
+                  <option value="/videos/blinking_1.mp4">Subject 1</option>
+                  <option value="/videos/blinking_2.mp4">Subject 2 (Male)</option>
+                  <option value="/videos/blinking_3.mp4">Subject 3 (Female)</option>
+                  <option value="/videos/blinking_4.mp4">Subject 4</option>
+                  <option value="/videos/blinking_5.mp4">Subject 5</option>
+                  <option value="/videos/blinking_6.mp4">Subject 6</option>
+                  <option value="/videos/blinking_7.mp4">Subject 7</option>
+                  <option value="/videos/blinking_8.mp4">Subject 8</option>
+                  <option value="/videos/blinking_9.mp4">Subject 9</option>
+                  <option value="/videos/blinking_10.mp4">Subject 10</option>
+                  <option value="/videos/blinking_11.mp4">Subject 11</option>
+                  <option value="/videos/blinking_12.mp4">Subject 12</option>
+                </select>
+                <button onClick={restartVideo} className="btn-secondary" style={{ padding: '4px 8px' }} title="Ulangi Video">
+                  <RotateCcw size={12} />
+                  <span>Ulang</span>
+                </button>
+              </>
             )}
-
-            <button
-              onClick={() => setShowLandmarks(!showLandmarks)}
-              className={`btn-secondary ${showLandmarks ? 'active' : ''}`}
-              style={{ padding: '4px 8px' }}
-            >
-              <Eye size={12} />
-              <span>{showLandmarks ? 'EAR Landmarks' : 'Landmarks Off'}</span>
-            </button>
-
-            <button
-              onClick={() => setShowHaarRoi(!showHaarRoi)}
-              className={`btn-secondary ${showHaarRoi ? 'active' : ''}`}
-              style={{ padding: '4px 8px' }}
-              title="Toggle Haar Cascade ROI Bounding Box"
-            >
-              <Scan size={12} />
-              <span>{showHaarRoi ? 'Haar ROI' : 'Haar ROI Off'}</span>
-            </button>
-
-            {inputMode === 'webcam' && (
-              <button
-                onClick={() => setMirrorCamera(!mirrorCamera)}
-                className={`btn-secondary ${mirrorCamera ? 'active' : ''}`}
-                style={{ padding: '4px 8px' }}
-              >
-                <FlipHorizontal size={12} />
-                <span>Mirror</span>
-              </button>
-            )}
-
-            <button
-              onClick={toggleFullscreen}
-              className={`btn-secondary ${isFullscreen ? 'active' : ''}`}
-              style={{ padding: '4px 8px' }}
-              title={isFullscreen ? 'Exit Fullscreen' : 'Expand to Fullscreen'}
-            >
-              {isFullscreen ? <Minimize2 size={12} /> : <Maximize2 size={12} />}
-              <span>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</span>
-            </button>
-
-            <button
-              onClick={togglePictureInPicture}
-              className={`btn-secondary ${isPipActive ? 'pip-active' : ''}`}
-              style={{ padding: '4px 8px' }}
-              title="Buka jendela mengambang (Picture-in-Picture) agar kamera tetap aktif menghitung kedipan saat membuka aplikasi/tab lain"
-            >
-              <PictureInPicture2 size={12} />
-              <span>{isPipActive ? 'Tutup PiP' : 'PiP Background'}</span>
-            </button>
           </div>
 
-          {!isSimpleView && inputMode === 'sample' && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <select
-                value={sampleVideo}
-                onChange={(e) => {
-                  const newSrc = e.target.value;
-                  setSampleVideo(newSrc);
-                  tracker.reset();
-                  latestDataRef.current = null;
-                }}
-                className="sample-select"
-                style={{ padding: '3px 8px', fontSize: '0.72rem' }}
-              >
-                <option value="/videos/blinking_0.mp4">blinking_0.mp4 (Subject 0)</option>
-                <option value="/videos/blinking_1.mp4">blinking_1.mp4 (Subject 1)</option>
-                <option value="/videos/blinking_2.mp4">blinking_2.mp4 (Subject 2 - Male)</option>
-                <option value="/videos/blinking_3.mp4">blinking_3.mp4 (Subject 3 - Female)</option>
-                <option value="/videos/blinking_4.mp4">blinking_4.mp4 (Subject 4)</option>
-                <option value="/videos/blinking_5.mp4">blinking_5.mp4 (Subject 5)</option>
-                <option value="/videos/blinking_6.mp4">blinking_6.mp4 (Subject 6)</option>
-                <option value="/videos/blinking_7.mp4">blinking_7.mp4 (Subject 7)</option>
-                <option value="/videos/blinking_8.mp4">blinking_8.mp4 (Subject 8)</option>
-                <option value="/videos/blinking_9.mp4">blinking_9.mp4 (Subject 9)</option>
-                <option value="/videos/blinking_10.mp4">blinking_10.mp4 (Subject 10)</option>
-                <option value="/videos/blinking_11.mp4">blinking_11.mp4 (Subject 11)</option>
-                <option value="/videos/blinking_12.mp4">blinking_12.mp4 (Subject 12)</option>
-              </select>
-            </div>
-          )}
+          <button
+            onClick={toggleFullscreen}
+            className={`btn-secondary ${isFullscreen ? 'active' : ''}`}
+            style={{ padding: '4px 9px' }}
+            title={isFullscreen ? 'Keluar Layar Penuh' : 'Layar Penuh'}
+          >
+            {isFullscreen ? <Minimize2 size={12} /> : <Maximize2 size={12} />}
+            <span>{isFullscreen ? 'Keluar' : 'Layar Penuh'}</span>
+          </button>
         </div>
       </div>
     </div>

@@ -13,7 +13,10 @@ import {
   Pause,
   Play,
   SlidersHorizontal,
-  ArrowRight,
+  Eye,
+  Scan,
+  FlipHorizontal,
+  PictureInPicture2,
 } from 'lucide-react';
 import OcularVisionLogo from './ui/OcularVisionLogo';
 
@@ -36,43 +39,48 @@ export default function Navbar({
   onTogglePause,
   completedMinutesCount = 0,
   hasMinuteAlert = false,
+  showLandmarks = true,
+  onToggleLandmarks,
+  showHaarRoi = false,
+  onToggleHaarRoi,
+  mirrorCamera = true,
+  onToggleMirror,
+  inputMode = 'webcam',
+  onTogglePip,
 }) {
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const popoverRef = useRef(null);
 
   useEffect(() => {
-    if (!showAdvanced) return;
+    if (!showSettings) return;
     const handleClickOutside = (e) => {
       if (popoverRef.current && !popoverRef.current.contains(e.target)) {
-        setShowAdvanced(false);
+        setShowSettings(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showAdvanced]);
+  }, [showSettings]);
 
   return (
     <header className="navbar">
-      {/* Brand Identity */}
+      {/* Brand */}
       <div className="nav-brand">
-        <div className="brand-icon-box" title="OcularVision AI Computer Vision System">
-          <OcularVisionLogo size={19} />
+        <div className="brand-icon-box" title="Eye Blink Detection System">
+          <OcularVisionLogo size={18} />
         </div>
         <div className="brand-text">
-          <div className="brand-title">OcularVision AI</div>
-          <div className="brand-subtitle">
-            Eye Blink &amp; Clinical EAR Monitor
-          </div>
+          <div className="brand-title">Eye Blink Detection</div>
+          <div className="brand-subtitle">Jason Istioso</div>
         </div>
       </div>
 
-      {/* Clean 3-Page View Switcher + Operator Badge */}
+      {/* 3-Tab Page Switcher + Name */}
       <div className="nav-view-switcher">
         <button
           type="button"
           onClick={() => onViewChange?.('landing')}
           className={`view-tab-btn ${currentView === 'landing' ? 'active' : ''}`}
-          title="Halaman Utama"
         >
           <Home size={13} />
           <span>Home</span>
@@ -82,7 +90,6 @@ export default function Navbar({
           type="button"
           onClick={() => onViewChange?.('studio')}
           className={`view-tab-btn ${currentView === 'studio' ? 'active' : ''}`}
-          title="Detection Studio (Kamera & Grafik EAR)"
         >
           <LayoutDashboard size={13} />
           <span>Studio</span>
@@ -92,32 +99,28 @@ export default function Navbar({
           type="button"
           onClick={() => onViewChange?.('results')}
           className={`view-tab-btn ${currentView === 'results' ? 'active' : ''} ${hasMinuteAlert ? 'has-alert' : ''}`}
-          title="Halaman Hasil Analisis Klinis AI"
         >
           <FileBarChart2 size={13} />
           <span>Hasil</span>
           {(completedMinutesCount > 0 || hasMinuteAlert) && (
             <span className={`nav-tab-badge ${hasMinuteAlert ? 'alert' : ''}`}>
-              {completedMinutesCount || '!'}
+              {hasMinuteAlert ? '!' : completedMinutesCount}
             </span>
           )}
         </button>
 
-        {/* Operator Profile Badge */}
         <button
           onClick={onEditUsername}
           className="nav-operator-pill"
-          title="Klik untuk mengisi atau mengubah nama pasien / operator"
+          title="Ubah nama"
           type="button"
         >
-          <div className="nav-operator-dot" />
           <User size={12} className="text-crimson" />
           <span className="nav-operator-label">
             {username ? username : 'Isi Nama'}
           </span>
         </button>
 
-        {/* Live Blink Counter (Mobile compact) */}
         <div
           className="nav-fps nav-fps-mobile-only"
           style={{
@@ -125,91 +128,53 @@ export default function Navbar({
             background: 'rgba(244, 63, 94, 0.1)',
           }}
         >
-          <span className="live-dot" style={{ backgroundColor: '#f43f5e' }} />
           <span style={{ color: '#fb7185', fontWeight: 700 }}>{totalBlinks}</span>
         </div>
       </div>
 
-      {/* Streamlined Primary Actions */}
+      {/* Minimal Right Controls */}
       <div className="nav-actions">
         {currentView === 'studio' && (
           <>
-            {/* Primary Play / Pause Session */}
             <button
               type="button"
               onClick={onTogglePause}
               className={`nav-session-btn ${isSessionPaused ? 'paused' : 'running'}`}
-              title={
-                isSessionPaused
-                  ? 'Lanjutkan deteksi & timer 1 menit'
-                  : 'Jeda deteksi & hentikan sementara timer 1 menit'
-              }
             >
               {isSessionPaused ? <Play size={13} /> : <Pause size={13} />}
-              <span>{isSessionPaused ? 'Lanjutkan' : 'Pause'}</span>
+              <span>{isSessionPaused ? 'Lanjut' : 'Pause'}</span>
             </button>
 
-            {/* Calibration Button */}
             <button
               type="button"
               onClick={onStartCalibration}
               disabled={isCalibrating || isSessionPaused}
               className={`nav-btn-accent ${isCalibrating ? 'calibrating' : ''}`}
-              title="Kalibrasi otomatis 3 detik sesuai mata Anda"
             >
               <Crosshair size={13} />
               <span>
-                {isCalibrating ? `Kalibrasi (${calibrateCountdown}s)` : 'Kalibrasi (3s)'}
+                {isCalibrating ? `${calibrateCountdown}s...` : 'Kalibrasi'}
               </span>
             </button>
-
-            {/* Next Page / View Clinical Result CTA */}
-            <button
-              type="button"
-              onClick={() => onViewChange?.('results')}
-              className="nav-results-cta"
-              title="Lihat hasil analisis lengkap & kartu nama klinis"
-            >
-              <span>Lihat Hasil</span>
-              <ArrowRight size={13} />
-            </button>
           </>
         )}
 
-        {currentView === 'results' && (
-          <>
-            <button
-              type="button"
-              onClick={() => onViewChange?.('studio')}
-              className="nav-btn-accent"
-            >
-              <LayoutDashboard size={13} />
-              <span>Kembali ke Studio</span>
-            </button>
-            <button type="button" onClick={onExportCSV} className="nav-btn">
-              <Download size={13} />
-              <span>Export CSV</span>
-            </button>
-          </>
-        )}
-
-        {/* Collapsible Advanced Settings Popover */}
+        {/* Single Settings Menu for Everything Else */}
         <div className="nav-advanced-wrap" ref={popoverRef}>
           <button
             type="button"
-            onClick={() => setShowAdvanced((v) => !v)}
-            className={`nav-btn nav-gear-btn ${showAdvanced ? 'active' : ''}`}
-            title="Pengaturan lanjutan: Threshold EAR, Kacamata, Reset & Export"
+            onClick={() => setShowSettings((v) => !v)}
+            className={`nav-btn nav-gear-btn ${showSettings ? 'active' : ''}`}
           >
             <SlidersHorizontal size={13} />
             <span>Pengaturan</span>
           </button>
 
-          {showAdvanced && (
+          {showSettings && (
             <div className="nav-advanced-popover">
               <div className="popover-section">
                 <div className="popover-row-head">
-                  <span className="popover-label">Sensitivitas EAR Threshold</span>
+                  <span className="popover-label">Threshold EAR</span>
                   <span className="popover-fps">
                     <span className={`live-dot ${isReady ? 'ready' : ''}`} />
                     {fps} FPS
@@ -220,7 +185,6 @@ export default function Navbar({
                     type="button"
                     onClick={() => onAdjustThreshold(-0.01)}
                     className="tuner-btn"
-                    title="Turunkan Threshold (-0.01)"
                   >
                     <Minus size={13} />
                   </button>
@@ -229,7 +193,6 @@ export default function Navbar({
                     type="button"
                     onClick={() => onAdjustThreshold(0.01)}
                     className="tuner-btn"
-                    title="Naikkan Threshold (+0.01)"
                   >
                     <Plus size={13} />
                   </button>
@@ -242,8 +205,51 @@ export default function Navbar({
                 className={`popover-item-btn ${threshold <= 0.24 ? 'active' : ''}`}
               >
                 <Glasses size={14} />
-                <span>Mode Kacamata ({threshold <= 0.24 ? 'Aktif: 0.210' : 'Normal: 0.280'})</span>
+                <span>Mode Kacamata ({threshold <= 0.24 ? '0.210' : '0.280'})</span>
               </button>
+
+              {currentView === 'studio' && (
+                <>
+                  <div className="popover-divider" />
+                  <button
+                    type="button"
+                    onClick={onToggleLandmarks}
+                    className={`popover-item-btn ${showLandmarks ? 'active' : ''}`}
+                  >
+                    <Eye size={14} />
+                    <span>Garis Landmark Mata</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onToggleHaarRoi}
+                    className={`popover-item-btn ${showHaarRoi ? 'active' : ''}`}
+                  >
+                    <Scan size={14} />
+                    <span>Kotak Haar ROI</span>
+                  </button>
+                  {inputMode === 'webcam' && (
+                    <button
+                      type="button"
+                      onClick={onToggleMirror}
+                      className={`popover-item-btn ${mirrorCamera ? 'active' : ''}`}
+                    >
+                      <FlipHorizontal size={14} />
+                      <span>Cermin Kamera (Mirror)</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onTogglePip?.();
+                      setShowSettings(false);
+                    }}
+                    className="popover-item-btn"
+                  >
+                    <PictureInPicture2 size={14} />
+                    <span>Mode Mengambang (PiP)</span>
+                  </button>
+                </>
+              )}
 
               <div className="popover-divider" />
 
@@ -251,24 +257,24 @@ export default function Navbar({
                 type="button"
                 onClick={() => {
                   onExportCSV?.();
-                  setShowAdvanced(false);
+                  setShowSettings(false);
                 }}
                 className="popover-item-btn"
               >
                 <Download size={14} />
-                <span>Export Data CSV</span>
+                <span>Export CSV</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => {
                   onReset?.();
-                  setShowAdvanced(false);
+                  setShowSettings(false);
                 }}
                 className="popover-item-btn danger"
               >
                 <RotateCcw size={14} />
-                <span>Reset Counter &amp; Timer</span>
+                <span>Reset Sesi</span>
               </button>
             </div>
           )}
