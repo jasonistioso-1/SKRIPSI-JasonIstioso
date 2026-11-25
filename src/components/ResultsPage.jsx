@@ -4,12 +4,10 @@ import {
   Download,
   FileDown,
   RotateCcw,
-  Edit3,
   AlertTriangle,
   CheckCircle2,
   Clock,
   ShieldAlert,
-  Stethoscope,
   Lock,
   Pause,
 } from 'lucide-react';
@@ -158,16 +156,9 @@ export default function ResultsPage({
           {/* Kop Surat Resmi */}
           <header className="paper-letterhead">
             <div className="paper-clinic-side">
-              <div className="paper-clinic-brand">
-                <span className="paper-clinic-icon">
-                  <Stethoscope size={15} />
-                </span>
-                <span>Jason Istioso&apos;s Clinic</span>
-              </div>
+              <div className="paper-clinic-brand">Jason Istioso&apos;s Clinic</div>
               <h1 className="paper-letter-title">Surat Hasil Pemeriksaan Kedipan Mata</h1>
-              <p className="paper-letter-sub">
-                Eye Blink Detection System • Frekuensi Kedipan &amp; Eye Aspect Ratio
-              </p>
+              <p className="paper-letter-sub">Eye Blink Detection System</p>
             </div>
 
             <div className="paper-meta-grid">
@@ -199,8 +190,7 @@ export default function ResultsPage({
                   <div className="paper-id-val-row">
                     <strong>{displayName}</strong>
                     <button type="button" onClick={onEditUsername} className="paper-edit-btn">
-                      <Edit3 size={12} />
-                      <span>{hasCustomName ? 'Ubah Nama' : 'Isi Nama'}</span>
+                      {hasCustomName ? 'Ubah' : 'Isi Nama'}
                     </button>
                   </div>
                 </div>
@@ -458,7 +448,7 @@ export default function ResultsPage({
             <div className="paper-signature">
               <span>Jakarta, {dateOnly}</span>
               <span className="paper-sign-role">Pemeriksa</span>
-              <div className="paper-sign-script">Jason Istioso</div>
+              <div className="paper-sign-space" />
               <strong>Jason Istioso&apos;s Clinic</strong>
             </div>
           </footer>
@@ -473,8 +463,9 @@ export default function ResultsPage({
           <div>
             <div className="pdf-clinic-name">Jason Istioso&apos;s Clinic</div>
             <div className="pdf-system-name">
-              <strong>Surat Hasil Pemeriksaan Kedipan Mata</strong> • Eye Blink Detection System
+              <strong>Surat Hasil Pemeriksaan Kedipan Mata</strong>
             </div>
+            <div style={{ fontSize: '9.5px', color: '#64748b' }}>Eye Blink Detection System</div>
           </div>
           <div className="pdf-meta-right">
             <div>

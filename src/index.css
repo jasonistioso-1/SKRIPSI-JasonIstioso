@@ -8746,14 +8746,13 @@ body {
   background: #ffffff;
   color: #0f172a;
   font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  border-radius: 16px;
+  border-radius: 12px;
   border: 1px solid #e2e8f0;
-  border-top: 5px solid #0284c7;
-  padding: 38px 42px;
-  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.65);
+  padding: 40px 44px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 28px;
 }
 
 @media (max-width: 720px) {
@@ -8769,31 +8768,17 @@ body {
   align-items: flex-end;
   gap: 20px;
   flex-wrap: wrap;
-  padding-bottom: 20px;
+  padding-bottom: 18px;
   border-bottom: 1.5px solid #0f172a;
 }
 
 .paper-clinic-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
   font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #0284c7;
-  margin-bottom: 7px;
-}
-
-.paper-clinic-icon {
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  background: #e0f2fe;
-  color: #0284c7;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  color: #0369a1;
+  margin-bottom: 6px;
 }
 
 .paper-letter-title {
@@ -8918,21 +8903,18 @@ body {
 }
 
 .paper-edit-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: #e0f2fe;
-  border: 1px solid #bae6fd;
-  color: #0369a1;
-  font-size: 0.72rem;
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: #0284c7;
+  font-size: 0.75rem;
   font-weight: 600;
+  text-decoration: underline;
   cursor: pointer;
 }
 
 .paper-edit-btn:hover {
-  background: #bae6fd;
+  color: #0369a1;
 }
 
 .paper-namecard-wrap {
@@ -9254,11 +9236,9 @@ body {
   color: #64748b;
 }
 
-.paper-sign-script {
-  font-family: 'Caveat', 'Plus Jakarta Sans', cursive;
-  font-size: 1.65rem;
-  color: #0284c7;
-  margin: 8px 0 4px;
-  padding: 0 18px 4px;
+.paper-sign-space {
+  width: 150px;
+  height: 44px;
+  margin: 8px 0 6px;
   border-bottom: 1px solid #94a3b8;
 }

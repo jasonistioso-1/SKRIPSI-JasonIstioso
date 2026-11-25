@@ -179,7 +179,7 @@ export function generateHospitalClinicalReport({
       ];
     } else if (validatedAvgBpm <= BLINK_STANDARD.MAX_NORMAL) {
       diagnosisTitle = 'Frekuensi Kedipan Normal';
-      diagnosisBadge = 'Normal (Sesuai Standar)';
+      diagnosisBadge = 'Normal';
       severity = 'normal';
       summaryText = `Laju kedipan ${displayName} tercatat ${validatedAvgBpm} kedipan/menit, berada dalam rentang normal (15–20 kedipan/menit) dengan nilai EAR rata-rata ${avgEar}.`;
       recommendations = [
