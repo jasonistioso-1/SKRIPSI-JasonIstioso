@@ -1,87 +1,132 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Check } from 'lucide-react';
 import OcularVisionLogo from './ui/OcularVisionLogo';
 
 export default function WelcomeOpening({ username, onFinish }) {
-  const [progress, setProgress] = useState(25);
-  const [status, setStatus] = useState('Menghubungkan kamera...');
+  const [progress, setProgress] = useState(0);
 
-  // Format username nicely: capitalize first letter
   const displayName = username
     ? username.charAt(0).toUpperCase() + username.slice(1)
     : 'Jason';
 
   useEffect(() => {
-    const t1 = setTimeout(() => {
-      setProgress(60);
-      setStatus('Memuat model deteksi mata...');
-    }, 400);
+    const duration = 2200;
+    const start = performance.now();
+    let rafId;
+    let finishTimer;
 
-    const t2 = setTimeout(() => {
-      setProgress(88);
-      setStatus('Mengalibrasi deteksi kedipan...');
-    }, 950);
+    const step = (now) => {
+      const t = Math.min(1, (now - start) / duration);
+      // Smooth easeOutCubic curve
+      const eased = 1 - Math.pow(1 - t, 3);
+      const pct = Math.round(eased * 100);
+      setProgress(pct);
 
-    const t3 = setTimeout(() => {
-      setProgress(100);
-      setStatus('Sistem siap');
-    }, 1450);
+      if (t < 1) {
+        rafId = requestAnimationFrame(step);
+      } else {
+        finishTimer = setTimeout(() => {
+          onFinish();
+        }, 420);
+      }
+    };
 
-    const t4 = setTimeout(() => {
-      onFinish();
-    }, 2100);
+    rafId = requestAnimationFrame(step);
 
     return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-      clearTimeout(t3);
-      clearTimeout(t4);
+      cancelAnimationFrame(rafId);
+      if (finishTimer) clearTimeout(finishTimer);
     };
   }, [onFinish]);
 
+  const statusText =
+    progress < 35
+      ? 'Menghubungkan perangkat kamera...'
+      : progress < 72
+        ? 'Memuat model deteksi wajah & EAR...'
+        : progress < 98
+          ? 'Menyiapkan timer evaluasi 1 menit...'
+          : 'Sistem siap digunakan';
+
+  const steps = [
+    { label: 'Kamera Live', done: progress >= 32 },
+    { label: 'Deteksi EAR', done: progress >= 68 },
+    { label: 'Timer 1 Menit', done: progress >= 95 },
+  ];
+
+  const isComplete = progress >= 100;
+
   return (
-    <div className="welcome-opening-stage" role="dialog" aria-modal="true" aria-label="Loading Screen">
-      {/* Subtle ambient backglow */}
+    <div
+      className="welcome-opening-stage"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Memuat Eye Blink Detection System"
+    >
       <div className="welcome-ambient-soft" />
 
-      {/* Clean Premium Modal Card */}
       <div className="welcome-modal-card">
-        {/* Emblem Squircle */}
-        <div className="welcome-squircle-icon">
-          <OcularVisionLogo size={30} color="#f43f5e" />
+        {/* Top Clinic / System Pill */}
+        <div className="welcome-clinic-pill">
+          <span>Jason Istioso&apos;s Clinic</span>
+          <span className="welcome-pill-sep">•</span>
+          <span>Eye Blink Detection System</span>
+        </div>
+
+        {/* Animated Precision Eye Reticle */}
+        <div className={`welcome-reticle-wrap ${isComplete ? 'ready' : ''}`}>
+          <div className="welcome-reticle-ring outer" />
+          <div className="welcome-reticle-ring inner" />
+          <div className="welcome-squircle-icon">
+            <OcularVisionLogo size={30} color={isComplete ? '#34d399' : '#38bdf8'} />
+          </div>
         </div>
 
         {/* Greeting & Title */}
         <div className="welcome-text-group">
-          <span className="welcome-greeting-label">Selamat Datang,</span>
+          <span className="welcome-greeting-label">Selamat Datang</span>
           <h1 className="welcome-operator-name">{displayName}</h1>
           <p className="welcome-subtitle">
-            Menyiapkan kamera live dan telemetri kedipan mata secara real-time.
+            Menyiapkan sesi pemantauan kedipan mata dan analisis standar per menit.
           </p>
         </div>
 
-        {/* Minimal Progress Meter */}
+        {/* Smooth Progress Meter */}
         <div className="welcome-meter-section">
           <div className="welcome-meter-header">
-            <span className="welcome-status-text">{status}</span>
-            <span className="welcome-pct-text">{progress}%</span>
+            <span className="welcome-status-text">{statusText}</span>
+            <span className={`welcome-pct-text ${isComplete ? 'ready' : ''}`}>
+              {progress}%
+            </span>
           </div>
           <div className="welcome-track">
             <div
-              className="welcome-fill"
+              className={`welcome-fill ${isComplete ? 'ready' : ''}`}
               style={{ width: `${progress}%` }}
             />
+          </div>
+
+          {/* Minimal 3-Step Readiness Pills */}
+          <div className="welcome-steps-row">
+            {steps.map((s) => (
+              <div key={s.label} className={`welcome-step-chip ${s.done ? 'done' : ''}`}>
+                <span className="welcome-step-dot">
+                  {s.done ? <Check size={10} strokeWidth={3} /> : null}
+                </span>
+                <span>{s.label}</span>
+              </div>
+            ))}
           </div>
         </div>
 
         {/* Action Button */}
         <button
           onClick={onFinish}
-          className="welcome-action-btn"
+          className={`welcome-action-btn ${isComplete ? 'ready' : ''}`}
           type="button"
           id="btn-skip-welcome-intro"
         >
-          <span>Masuk ke Studio</span>
+          <span>{isComplete ? 'Masuk ke Studio' : 'Lewati & Masuk Studio'}</span>
           <ArrowRight size={16} />
         </button>
       </div>
