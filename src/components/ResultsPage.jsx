@@ -61,7 +61,7 @@ export default function ResultsPage({
           </div>
           <h2>Sesi Masih Berjalan</h2>
           <p>
-            Tekan tombol <strong>Pause</strong> terlebih dahulu agar hasil pemeriksaan dapat
+            Tekan tombol <strong>Pause</strong> terlebih dahulu agar surat hasil pemeriksaan dapat
             dibuka dengan data terbaru.
           </p>
           <div className="doc-lock-actions">
@@ -105,16 +105,7 @@ export default function ResultsPage({
             ? 'elevated'
             : 'neutral';
 
-  const statusShortLabel =
-    report.severity === 'normal'
-      ? 'NORMAL — Sesuai Standar'
-      : report.severity === 'critical'
-        ? 'KURANG KEDIPAN BERAT'
-        : report.severity === 'warning'
-          ? 'DI BAWAH STANDAR (< 15/menit)'
-          : report.severity === 'elevated' || report.severity === 'high'
-            ? 'FREKUENSI TINGGI (> 20/menit)'
-            : 'BELUM ADA DATA';
+  const statusShortLabel = report.diagnosisBadge;
 
   const handlePrintPdf = () => {
     const prevTitle = document.title;
@@ -136,14 +127,14 @@ export default function ResultsPage({
   return (
     <div className="doc-page">
       {/* ========================================================
-          SCREEN VIEW: CRISP LIGHT-PAPER DOCTOR'S LETTER
+          SCREEN VIEW: REFINED EDITORIAL PAPER LETTER
           ======================================================== */}
       <div className="doc-container screen-only-results">
         {/* Top Action Toolbar */}
         <div className="doc-toolbar">
           <button type="button" onClick={onBackToStudio} className="res-btn secondary">
             <ArrowLeft size={15} />
-            <span>Lanjutkan Studio</span>
+            <span>Kembali ke Studio</span>
           </button>
 
           <div className="doc-toolbar-right">
@@ -169,19 +160,19 @@ export default function ResultsPage({
             <div className="paper-clinic-side">
               <div className="paper-clinic-brand">
                 <span className="paper-clinic-icon">
-                  <Stethoscope size={16} />
+                  <Stethoscope size={15} />
                 </span>
-                <span>JASON ISTIOSO&apos;S CLINIC</span>
+                <span>Jason Istioso&apos;s Clinic</span>
               </div>
-              <h1 className="paper-letter-title">SURAT HASIL PEMERIKSAAN KEDIPAN MATA</h1>
+              <h1 className="paper-letter-title">Surat Hasil Pemeriksaan Kedipan Mata</h1>
               <p className="paper-letter-sub">
-                Eye Blink Detection System • Pemeriksaan Frekuensi Kedipan &amp; Eye Aspect Ratio
+                Eye Blink Detection System — Evaluasi Frekuensi Kedipan &amp; Eye Aspect Ratio
               </p>
             </div>
 
             <div className="paper-meta-grid">
               <div>
-                <span>No. Surat</span>
+                <span>No. Dokumen</span>
                 <strong className="mono">{docCode}</strong>
               </div>
               <div>
@@ -189,7 +180,7 @@ export default function ResultsPage({
                 <strong>{dateOnly}</strong>
               </div>
               <div>
-                <span>Durasi</span>
+                <span>Durasi Sesi</span>
                 <strong className="mono">{formatDuration(activeSeconds)}</strong>
               </div>
             </div>
@@ -198,7 +189,7 @@ export default function ResultsPage({
           {/* Bagian I: Identitas Pasien & Kartu Nama */}
           <section className="paper-section">
             <div className="paper-sec-title">
-              <span>I.</span> IDENTITAS PASIEN / PESERTA
+              <span>I.</span> Identitas Pasien
             </div>
 
             <div className="paper-identity-row">
@@ -220,30 +211,30 @@ export default function ResultsPage({
                 </div>
 
                 <div className="paper-id-item">
-                  <span className="paper-id-label">Alat Pemeriksaan</span>
-                  <span>Eye Blink Detection System (Kamera &amp; EAR)</span>
+                  <span className="paper-id-label">Metode Pengukuran</span>
+                  <span>Kamera &amp; Rasio Keterbukaan Mata (EAR)</span>
                 </div>
 
                 <div className="paper-id-item">
                   <span className="paper-id-label">Standar Normal</span>
                   <span>
                     <strong>
-                      {BLINK_STANDARD.MIN_NORMAL}–{BLINK_STANDARD.MAX_NORMAL} kedipan / menit
+                      {BLINK_STANDARD.MIN_NORMAL}–{BLINK_STANDARD.MAX_NORMAL} kedipan per menit
                     </strong>{' '}
-                    (Threshold EAR {threshold.toFixed(3)})
+                    (Threshold {threshold.toFixed(3)})
                   </span>
                 </div>
 
                 <div className="paper-id-item">
                   <span className="paper-id-label">Ringkasan Sesi</span>
                   <span>
-                    {totalBlinks} kedipan dalam {formatDuration(activeSeconds)} (
-                    {report.completedMinutes} menit selesai)
+                    {totalBlinks} kedipan selama {formatDuration(activeSeconds)} (
+                    {report.completedMinutes} siklus 1 menit selesai)
                   </span>
                 </div>
               </div>
 
-              {/* Holographic Namecard (Same as Home, username synced) */}
+              {/* Holographic Namecard (Same as Home, clean balanced strip) */}
               <div className="paper-namecard-wrap">
                 <BusinessCard
                   effect="shards"
@@ -251,13 +242,13 @@ export default function ResultsPage({
                   greeting={`Halo, ${displayName}`}
                   title={displayName}
                   subtitle="hasil pemeriksaan"
-                  location="JASON ISTIOSO'S CLINIC"
+                  location="JAKARTA"
                   websiteUrl={null}
                   websiteLabel={`${report.validatedAvgBpm} BPM • ${totalBlinks} kedipan`}
                   name={displayName}
                   nameJp="Jason Istioso's Clinic"
                   tagline="Eye Blink Detection System"
-                  taglineJp={`Rata-rata: ${report.validatedAvgBpm} BPM • EAR ${report.avgEar.toFixed(3)}`}
+                  taglineJp={`Rata-rata ${report.validatedAvgBpm} BPM • EAR ${report.avgEar.toFixed(3)}`}
                   email={`No. ${docCode}`}
                   qrCaption="Klik kartu untuk balik"
                   qrCaptionJp={`${displayName} • ${dateOnly}`}
@@ -266,15 +257,15 @@ export default function ResultsPage({
             </div>
           </section>
 
-          {/* Bagian II: Hasil Pemeriksaan & Anjuran */}
+          {/* Bagian II: Ringkasan & Hasil Evaluasi */}
           <section className="paper-section">
             <div className="paper-sec-title">
-              <span>II.</span> HASIL PEMERIKSAAN &amp; KESIMPULAN
+              <span>II.</span> Ringkasan &amp; Hasil Evaluasi
             </div>
 
             <div className={`paper-verdict-card ${statusTone}`}>
               <div className="paper-verdict-main">
-                <span className="paper-verdict-kicker">Hasil Evaluasi</span>
+                <span className="paper-verdict-kicker">Status Pemeriksaan</span>
                 <div className="paper-verdict-badge">
                   {statusTone === 'normal' ? (
                     <CheckCircle2 size={18} />
@@ -291,7 +282,7 @@ export default function ResultsPage({
               </div>
 
               <div className="paper-bpm-box">
-                <span>Laju Kedipan</span>
+                <span>Frekuensi Kedipan</span>
                 <strong>{report.validatedAvgBpm}</strong>
                 <small>kedipan / menit</small>
               </div>
@@ -307,7 +298,7 @@ export default function ResultsPage({
                     width: `${normalZoneWidthPct}%`,
                   }}
                 >
-                  <span>Normal (15–20)</span>
+                  <span>Standar 15–20</span>
                 </div>
                 {(activeSeconds > 0 || totalBlinks > 0) && (
                   <div
@@ -328,8 +319,8 @@ export default function ResultsPage({
             {/* 4 Key Numbers */}
             <div className="paper-kpi-grid">
               <div className="paper-kpi-tile">
-                <span>Rasio / Menit</span>
-                <strong>{report.validatedAvgBpm} BPM</strong>
+                <span>Frekuensi Rata-rata</span>
+                <strong>{report.validatedAvgBpm} / menit</strong>
               </div>
               <div className="paper-kpi-tile">
                 <span>Total Kedipan</span>
@@ -340,7 +331,7 @@ export default function ResultsPage({
                 <strong>{report.avgEar.toFixed(3)}</strong>
               </div>
               <div className="paper-kpi-tile">
-                <span>Peringatan (&lt; 15/mnt)</span>
+                <span>Peringatan Kurang Kedip</span>
                 <strong className={report.alertMinutesCount > 0 ? 'txt-rose' : 'txt-emerald'}>
                   {report.alertMinutesCount} kali
                 </strong>
@@ -350,7 +341,7 @@ export default function ResultsPage({
             {/* Concise Notes */}
             <div className="paper-advice-box">
               <p className="paper-advice-summary">{report.summaryText}</p>
-              <div className="paper-advice-title">Anjuran:</div>
+              <div className="paper-advice-title">Anjuran Perawatan Mata</div>
               <ol className="paper-advice-list">
                 {report.recommendations.map((rec, i) => (
                   <li key={i}>{rec}</li>
@@ -359,10 +350,10 @@ export default function ResultsPage({
             </div>
           </section>
 
-          {/* Bagian III: Rincian Evaluasi Tiap 1 Menit */}
+          {/* Bagian III: Catatan Kedipan Per Menit */}
           <section className="paper-section">
             <div className="paper-sec-title">
-              <span>III.</span> RINCIAN EVALUASI TIAP 1 MENIT
+              <span>III.</span> Catatan Kedipan Per Menit
             </div>
 
             <div className="paper-table-wrap">
@@ -372,7 +363,7 @@ export default function ResultsPage({
                     <th>Menit</th>
                     <th>Rentang</th>
                     <th>Kedipan</th>
-                    <th>Rasio / Menit</th>
+                    <th>Frekuensi</th>
                     <th>Standar</th>
                     <th>Avg EAR</th>
                     <th>Status</th>
@@ -384,8 +375,8 @@ export default function ResultsPage({
                     <tr key={m.minuteNumber} className={m.alertTriggered ? 'row-alert' : ''}>
                       <td className="mono bold">Menit {m.minuteNumber}</td>
                       <td className="mono muted">{m.windowRange}</td>
-                      <td className="mono bold">{m.blinksInMinute} kedipan</td>
-                      <td className="mono">{m.blinksInMinute} BPM</td>
+                      <td className="mono bold">{m.blinksInMinute} kali</td>
+                      <td className="mono">{m.blinksInMinute} / mnt</td>
                       <td className="mono">{m.minStandardPct}%</td>
                       <td className="mono">{Number(m.avgEar || 0.28).toFixed(3)}</td>
                       <td>
@@ -401,10 +392,10 @@ export default function ResultsPage({
                     <tr>
                       <td className="mono muted">Menit {minuteLogs.length + 1}</td>
                       <td className="mono muted">{currentCycleSeconds}s / 60s</td>
-                      <td className="mono">{currentCycleBlinks} kedipan</td>
+                      <td className="mono">{currentCycleBlinks} kali</td>
                       <td className="mono muted">
                         {currentCycleSeconds > 0
-                          ? `${((currentCycleBlinks / currentCycleSeconds) * 60).toFixed(1)} BPM (est.)`
+                          ? `${((currentCycleBlinks / currentCycleSeconds) * 60).toFixed(1)} / mnt`
                           : '—'}
                       </td>
                       <td className="mono muted">
@@ -415,7 +406,7 @@ export default function ResultsPage({
                         <span className="paper-chip neutral">Sementara</span>
                       </td>
                       <td className="muted">
-                        Data sementara sebelum genap 60 detik aktif.
+                        Catatan sementara sebelum siklus genap 60 detik.
                       </td>
                     </tr>
                   )}
@@ -424,10 +415,10 @@ export default function ResultsPage({
             </div>
           </section>
 
-          {/* Bagian IV: Tabel Parameter Pemeriksaan */}
+          {/* Bagian IV: Rincian Parameter */}
           <section className="paper-section">
             <div className="paper-sec-title">
-              <span>IV.</span> PARAMETER PEMERIKSAAN
+              <span>IV.</span> Rincian Parameter Pemeriksaan
             </div>
 
             <div className="paper-table-wrap">
@@ -459,9 +450,9 @@ export default function ResultsPage({
           {/* Bagian V: Penutup & Pengesahan */}
           <footer className="paper-footer">
             <div className="paper-disclaimer">
-              Surat hasil pemeriksaan dari <strong>Jason Istioso&apos;s Clinic</strong> melalui{' '}
-              <strong>Eye Blink Detection System</strong>. Gunakan sebagai pemantauan kesehatan mata
-              berkala.
+              Dokumen ini merupakan hasil pemeriksaan dari <strong>Jason Istioso&apos;s Clinic</strong>{' '}
+              melalui <strong>Eye Blink Detection System</strong> sebagai acuan pemantauan
+              kesehatan mata.
             </div>
 
             <div className="paper-signature">
@@ -480,30 +471,30 @@ export default function ResultsPage({
       <div className="pdf-print-sheet" aria-hidden="true">
         <header className="pdf-letterhead">
           <div>
-            <div className="pdf-clinic-name">JASON ISTIOSO&apos;S CLINIC</div>
+            <div className="pdf-clinic-name">Jason Istioso&apos;s Clinic</div>
             <div className="pdf-system-name">
-              <strong>SURAT HASIL PEMERIKSAAN KEDIPAN MATA</strong> — Eye Blink Detection System
+              <strong>Surat Hasil Pemeriksaan Kedipan Mata</strong> — Eye Blink Detection System
             </div>
           </div>
           <div className="pdf-meta-right">
             <div>
-              <strong>No. Surat:</strong> {docCode}
+              <strong>No. Dokumen:</strong> {docCode}
             </div>
             <div>
               <strong>Tanggal:</strong> {dateOnly}
             </div>
             <div>
-              <strong>Durasi:</strong> {formatDuration(activeSeconds)}
+              <strong>Durasi Sesi:</strong> {formatDuration(activeSeconds)}
             </div>
           </div>
         </header>
 
         <section className="pdf-section">
-          <h2 className="pdf-section-title">I. Identitas Pasien / Peserta</h2>
+          <h2 className="pdf-section-title">I. Identitas Pasien</h2>
           <div className="pdf-patient-box">
             <div className="pdf-patient-grid">
               <div>
-                <span className="pdf-field-label">Nama Pasien</span>
+                <span className="pdf-field-label">Nama Lengkap</span>
                 <strong className="pdf-field-value">{displayName}</strong>
               </div>
               <div>
@@ -525,15 +516,15 @@ export default function ResultsPage({
         </section>
 
         <section className="pdf-section">
-          <h2 className="pdf-section-title">II. Hasil Pemeriksaan &amp; Kesimpulan</h2>
+          <h2 className="pdf-section-title">II. Ringkasan &amp; Hasil Evaluasi</h2>
           <div className="pdf-kpi-row">
             <div className="pdf-kpi-box">
               <span>Status</span>
               <strong>{statusShortLabel}</strong>
             </div>
             <div className="pdf-kpi-box">
-              <span>Rasio / Menit</span>
-              <strong>{report.validatedAvgBpm} BPM</strong>
+              <span>Frekuensi</span>
+              <strong>{report.validatedAvgBpm} / menit</strong>
             </div>
             <div className="pdf-kpi-box">
               <span>Total Kedipan &amp; EAR</span>
@@ -542,7 +533,7 @@ export default function ResultsPage({
               </strong>
             </div>
             <div className="pdf-kpi-box">
-              <span>Alert (&lt; 15/mnt)</span>
+              <span>Peringatan (&lt; 15/mnt)</span>
               <strong>{report.alertMinutesCount} kali</strong>
             </div>
           </div>
@@ -557,14 +548,14 @@ export default function ResultsPage({
         </section>
 
         <section className="pdf-section">
-          <h2 className="pdf-section-title">III. Rincian Evaluasi Tiap 1 Menit</h2>
+          <h2 className="pdf-section-title">III. Catatan Kedipan Per Menit</h2>
           <table className="pdf-table">
             <thead>
               <tr>
                 <th>Menit</th>
                 <th>Rentang</th>
                 <th>Kedipan</th>
-                <th>Rasio / Menit</th>
+                <th>Frekuensi</th>
                 <th>Avg EAR</th>
                 <th>Status</th>
                 <th>Keterangan</th>
@@ -575,20 +566,20 @@ export default function ResultsPage({
                 <tr>
                   <td>Menit 1</td>
                   <td>{currentCycleSeconds}s / 60s</td>
-                  <td>{currentCycleBlinks} kedipan</td>
-                  <td>{report.validatedAvgBpm} BPM</td>
+                  <td>{currentCycleBlinks} kali</td>
+                  <td>{report.validatedAvgBpm} / mnt</td>
                   <td>{report.avgEar.toFixed(3)}</td>
                   <td>Sementara</td>
-                  <td>Data sementara sebelum genap 60 detik aktif.</td>
+                  <td>Catatan sementara sebelum siklus genap 60 detik.</td>
                 </tr>
               ) : (
                 minuteLogs.map((m) => (
                   <tr key={m.minuteNumber}>
                     <td>Menit {m.minuteNumber}</td>
                     <td>{m.windowRange}</td>
-                    <td>{m.blinksInMinute}</td>
+                    <td>{m.blinksInMinute} kali</td>
                     <td>
-                      {m.blinksInMinute} BPM ({m.minStandardPct}%)
+                      {m.blinksInMinute} / mnt ({m.minStandardPct}%)
                     </td>
                     <td>{Number(m.avgEar || 0.28).toFixed(3)}</td>
                     <td>{m.alertTriggered ? `Alert (${m.status})` : m.status}</td>
@@ -601,7 +592,7 @@ export default function ResultsPage({
         </section>
 
         <section className="pdf-section">
-          <h2 className="pdf-section-title">IV. Parameter Pemeriksaan</h2>
+          <h2 className="pdf-section-title">IV. Rincian Parameter Pemeriksaan</h2>
           <table className="pdf-table">
             <thead>
               <tr>
@@ -626,8 +617,8 @@ export default function ResultsPage({
 
         <footer className="pdf-footer">
           <div style={{ maxWidth: '62%' }}>
-            Surat hasil pemeriksaan resmi dari <strong>Jason Istioso&apos;s Clinic</strong> melalui{' '}
-            <strong>Eye Blink Detection System</strong>.
+            Dokumen resmi hasil pemeriksaan dari <strong>Jason Istioso&apos;s Clinic</strong>{' '}
+            melalui <strong>Eye Blink Detection System</strong>.
           </div>
           <div className="pdf-sign-box">
             <span>Jakarta, {dateOnly}</span>

@@ -7249,10 +7249,10 @@ body {
   .pdf-print-sheet {
     display: block !important;
     width: 100%;
-    font-family: 'Inter', Arial, sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Inter', Arial, sans-serif;
     color: #111827;
     font-size: 11px;
-    line-height: 1.45;
+    line-height: 1.5;
   }
 
   .pdf-letterhead {
@@ -7265,16 +7265,18 @@ body {
   }
 
   .pdf-clinic-name {
-    font-size: 18px;
-    font-weight: 800;
-    color: #0f172a;
-    letter-spacing: -0.02em;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #0284c7;
   }
 
   .pdf-system-name {
-    font-size: 11px;
-    color: #475569;
-    margin-top: 2px;
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 16px;
+    color: #0f172a;
+    margin-top: 3px;
   }
 
   .pdf-meta-right {
@@ -8743,48 +8745,50 @@ body {
 .paper-letter {
   background: #ffffff;
   color: #0f172a;
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   border-radius: 16px;
   border: 1px solid #e2e8f0;
   border-top: 5px solid #0284c7;
-  padding: 34px 38px;
+  padding: 38px 42px;
   box-shadow: 0 28px 70px rgba(0, 0, 0, 0.65);
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 30px;
 }
 
 @media (max-width: 720px) {
   .paper-letter {
-    padding: 20px 16px;
-    gap: 22px;
+    padding: 22px 18px;
+    gap: 24px;
   }
 }
 
 .paper-letterhead {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 18px;
+  align-items: flex-end;
+  gap: 20px;
   flex-wrap: wrap;
-  padding-bottom: 18px;
-  border-bottom: 2px solid #0f172a;
+  padding-bottom: 20px;
+  border-bottom: 1.5px solid #0f172a;
 }
 
 .paper-clinic-brand {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.8rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: #0284c7;
-  margin-bottom: 6px;
+  margin-bottom: 7px;
 }
 
 .paper-clinic-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: 7px;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
   background: #e0f2fe;
   color: #0284c7;
   display: inline-flex;
@@ -8793,24 +8797,26 @@ body {
 }
 
 .paper-letter-title {
-  font-family: var(--font-display);
-  font-size: clamp(1.3rem, 2.5vw, 1.72rem);
-  font-weight: 800;
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: clamp(1.5rem, 2.8vw, 1.95rem);
+  font-weight: 700;
   letter-spacing: -0.02em;
+  line-height: 1.15;
   color: #0f172a;
 }
 
 .paper-letter-sub {
-  margin-top: 4px;
-  font-size: 0.84rem;
+  margin-top: 5px;
+  font-size: 0.85rem;
   color: #475569;
+  font-weight: 400;
 }
 
 .paper-meta-grid {
   display: grid;
   grid-template-columns: repeat(3, auto);
-  gap: 16px;
-  padding: 10px 14px;
+  gap: 18px;
+  padding: 10px 16px;
   border-radius: 10px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
@@ -8823,14 +8829,16 @@ body {
 }
 
 .paper-meta-grid span {
-  font-size: 0.66rem;
+  font-size: 0.65rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   color: #64748b;
 }
 
 .paper-meta-grid strong {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
+  font-weight: 700;
   color: #0f172a;
 }
 
@@ -8841,19 +8849,23 @@ body {
 }
 
 .paper-sec-title {
-  font-family: var(--font-display);
-  font-size: 0.92rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.96rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   color: #0f172a;
-  padding-bottom: 7px;
+  padding-bottom: 8px;
   border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
 }
 
 .paper-sec-title span {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 1.02rem;
+  font-weight: 700;
   color: #0284c7;
-  font-family: var(--font-mono);
-  margin-right: 4px;
 }
 
 .paper-identity-row {
